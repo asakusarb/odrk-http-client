@@ -1,1 +1,7 @@
 Ruby HTTP clients comparison for my presentation at Ooedo Ruby Kaigi.
+
+= Install all clients as a gem
+
+ruby scripts/install_gem.rb
+
+CAUTION: It installs gems to your user-install dir.
