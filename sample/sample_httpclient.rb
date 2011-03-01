@@ -1,3 +1,4 @@
+requrie 'uri'
 require 'httpclient'
 
 url = URI.parse(ARGV.shift || 'http://www.google.com/')

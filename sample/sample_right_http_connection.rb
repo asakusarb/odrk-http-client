@@ -1,4 +1,5 @@
-require 'active_support/all'
+require 'uri'
+require 'active_support/all' # right_http_connection depends on active_support/core/ext (Object#blank?)
 require 'right_http_connection'
 
 url = URI.parse(ARGV.shift || 'http://www.google.com/')

@@ -1,3 +1,4 @@
+require 'uri'
 require 'net/http'
 
 url = URI.parse(ARGV.shift || 'http://www.google.com/')
