@@ -1,18 +1,18 @@
-module name, gem, 1.9?, repo
-net/http, no, yes
-open-uri, no, yes
-curb, yes, yes, https://github.com/taf2/curb/
-httpclient, yes, yes, https://github.com/nahi/httpclient
-right_http_connection, yes, yes, https://github.com/rightscale/right_http_connection
-eventmachine, yes, yes, https://github.com/eventmachine/eventmachine    
-httparty, yes, yes, https://github.com/jnunemaker/httparty  
-rufus-verbs, yes, yes, https://github.com/jmettraux/rufus-verbs        
-rest-client, yes, yes, https://github.com/archiloque/rest-client       
-typhoeus, yes, yes, https://github.com/dbalatero/typhoeus   
-faraday, yes, yes, https://github.com/technoweenie/faraday 
-excon, yes, yes, https://github.com/geemus/excon 
-patron, yes, yes, https://github.com/toland/patron        
-simplehttp, yes, yes, http://simplehttp.rubyforge.org/
-wrest, yes, yes, https://github.com/kaiwren/wrest
-curl-multi, yes, no, https://github.com/kball/curl_multi.rb  
-rfuzz, yes, no, http://rubyforge.org/scm/?group_id=1944
+module name,            gem, 1.9, repo
+net/http,               no,  yes
+open-uri,               no,  yes
+curb,                   yes, yes, https://github.com/taf2/curb/
+httpclient,             yes, yes, https://github.com/nahi/httpclient
+right_http_connection,  yes, yes, https://github.com/rightscale/right_http_connection
+eventmachine,           yes, yes, https://github.com/eventmachine/eventmachine    
+httparty,               yes, yes, https://github.com/jnunemaker/httparty  
+rufus-verbs,            yes, yes, https://github.com/jmettraux/rufus-verbs        
+rest-client,            yes, yes, https://github.com/archiloque/rest-client       
+typhoeus,               yes, yes, https://github.com/dbalatero/typhoeus   
+faraday,                yes, yes, https://github.com/technoweenie/faraday 
+excon,                  yes, yes, https://github.com/geemus/excon 
+patron,                 yes, yes, https://github.com/toland/patron        
+simplehttp,             yes, yes, http://simplehttp.rubyforge.org/
+wrest,                  yes, yes, https://github.com/kaiwren/wrest
+curl-multi,             yes, no,  https://github.com/kball/curl_multi.rb  
+rfuzz,                  yes, no,  http://rubyforge.org/scm/?group_id=1944
