@@ -1,7 +1,7 @@
 requrie 'uri'
 require 'httpclient'
 
-url = URI.parse(ARGV.shift || 'http://www.google.com/')
+url = URI.parse(ARGV.shift || 'http://www.google.co.jp/')
 proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
 proxy = URI.parse(proxy) if proxy
 
