@@ -14,3 +14,4 @@ faraday, yes, https://github.com/technoweenie/faraday
 excon, yes, https://github.com/geemus/excon 
 patron, yes, https://github.com/toland/patron        
 simplehttp, yes, http://simplehttp.rubyforge.org/
+wrest, yes, https://github.com/kaiwren/wrest
