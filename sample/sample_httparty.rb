@@ -1,7 +1,7 @@
 require 'uri'
 require 'httparty'
 
-url = URI.parse(ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html')
+url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
 proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
 proxy = URI.parse(proxy) if proxy
 
@@ -10,6 +10,6 @@ class HTTPartyClient
 end
 
 HTTPartyClient.http_proxy(proxy.host, proxy.port) if proxy
-body = HTTPartyClient.get(url.to_s)
+body = HTTPartyClient.get(url)
 
 p body.size
