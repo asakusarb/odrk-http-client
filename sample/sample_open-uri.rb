@@ -1,7 +1,13 @@
 require 'open-uri'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
+require File.expand_path('sample_setting', File.dirname(__FILE__))
 
-body = open(url, :proxy => proxy) { |f| f.read }
+if @proxy_user
+  opt = {:proxy_http_basic_authentication => [@proxy, @proxy_user, @proxy_pass]}
+elsif @proxy
+  opt = {:proxy => @proxy}
+else
+  opt = nil
+end
+body = open(@url, opt) { |f| f.read }
 p body.size

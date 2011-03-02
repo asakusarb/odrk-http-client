@@ -1,10 +1,8 @@
 require 'excon'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
+require File.expand_path('sample_setting', File.dirname(__FILE__))
 # proxy is not supported.
-# proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
-# proxy = URI.parse(proxy) if proxy
 
-body = Excon.get(url).body
+body = Excon.get(@url).body
 
 p body.size

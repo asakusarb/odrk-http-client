@@ -1,7 +1,6 @@
 require 'rufus-verbs'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
+require File.expand_path('sample_setting', File.dirname(__FILE__))
 
 class RufusVerbsClient
   include Rufus::Verbs
@@ -11,5 +10,5 @@ class RufusVerbsClient
   end
 end
 
-body = RufusVerbsClient.new.run(:uri => url, :proxy => proxy).body
+body = RufusVerbsClient.new.run(:uri => @url, :proxy => @proxy).body
 p body.size

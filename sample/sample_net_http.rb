@@ -1,12 +1,12 @@
 require 'uri'
 require 'net/http'
 
-url = URI.parse(ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html')
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
-proxy = URI.parse(proxy) if proxy
+require File.expand_path('sample_setting', File.dirname(__FILE__))
+url = URI.parse(@url)
+proxy = URI.parse(@proxy) if @proxy
 
 if proxy
-  c = Net::HTTP::Proxy(proxy.host, proxy.port).new(url.host, url.port)
+  c = Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password).new(url.host, url.port)
 else
   c = Net::HTTP.new(url.host, url.port)
 end

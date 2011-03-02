@@ -1,9 +1,10 @@
+require 'uri'
 require 'simplehttp'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
+require File.expand_path('sample_setting', File.dirname(__FILE__))
+proxy = URI.parse(@proxy) if @proxy
 
-http = SimpleHttp.new(url)
-http.set_proxy(proxy) if proxy
+http = SimpleHttp.new(@url)
+http.set_proxy(proxy.hostname, proxy.port, proxy.user, proxy.password) if proxy
 body = http.get
 p body.size

@@ -1,10 +1,10 @@
 require 'wrest'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
+require File.expand_path('sample_setting', File.dirname(__FILE__))
 # proxy is not supported.
 # proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
 
 Wrest.use_curl! # use Patron.
 
-body = url.to_uri.get.body
+body = @url.to_uri.get.body
 p body.size

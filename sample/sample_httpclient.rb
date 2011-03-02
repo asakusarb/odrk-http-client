@@ -1,9 +1,7 @@
-require 'uri'
 require 'httpclient'
 
-url = ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html'
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
+require File.expand_path('sample_setting', File.dirname(__FILE__))
 
-c = HTTPClient.new(proxy)
-body = c.get(url).content
+client = HTTPClient.new(@proxy)
+body = client.get(@url).content
 p body.size

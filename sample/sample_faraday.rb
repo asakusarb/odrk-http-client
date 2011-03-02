@@ -1,13 +1,16 @@
 require 'uri'
 require 'faraday'
 
-url = URI.parse(ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.html')
-proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
+require File.expand_path('sample_setting', File.dirname(__FILE__))
+url = URI.parse(@url)
 
-conn = Faraday.new(:url => (url + "/").to_s, :proxy => proxy) { |builder|
+conn = Faraday.new(:url => (url + "/").to_s) { |builder|
 #  builder.adapter :typhoeus
   builder.adapter :net_http # for proxy
 }
+if @proxy
+  conn.proxy(:uri => @proxy, :user => @proxy_user, :password => @proxy_pass)
+end
 
 body = conn.get(url.path).body
 p body.size
