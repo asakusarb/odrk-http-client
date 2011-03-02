@@ -8,7 +8,7 @@ body = nil
 EM.run do
   done = false
   requests = 0
-  client = EM::Protocols::HttpClient2.connect(url.host, url.port)
+  client = EM::Protocols::HttpClient2.connect(:host => url.host, :port => url.port, :ssl => url.scheme == 'https')
   req = client.get(url.path)
   req.callback {
     body = req.content
