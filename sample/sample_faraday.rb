@@ -5,7 +5,8 @@ url = URI.parse(ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.
 proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
 
 conn = Faraday.new(:url => (url + "/").to_s, :proxy => proxy) { |builder|
-  builder.adapter :typhoeus
+#  builder.adapter :typhoeus
+  builder.adapter :net_http # for proxy
 }
 
 body = conn.get(url.path).body

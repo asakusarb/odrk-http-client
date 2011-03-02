@@ -6,19 +6,18 @@ url = URI.parse(ARGV.shift || 'http://www.ci.i.u-tokyo.ac.jp/~sasada/joke-intro.
 proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
 proxy = URI.parse(proxy) if proxy
 
-conn = Rightscale::HttpConnection.new
+if proxy
+  conn = Rightscale::HttpConnection.new(:proxy_host => proxy.host, :proxy_port => proxy.port)
+else
+  conn = Rightscale::HttpConnection.new
+end
 req = {
   :request => Net::HTTP::Get.new(url.path),
   :server => url.host,
   :port => url.port,
   :protocol => 'http'
 }
-if proxy
-  req.merge(
-    :proxy_host => proxy.host,
-    :proxy_port => proxy.port
-  )
-end
+
 body = conn.request(req).read_body
 conn.finish
 
