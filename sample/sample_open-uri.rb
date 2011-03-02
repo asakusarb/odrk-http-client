@@ -7,7 +7,7 @@ if @proxy_user
 elsif @proxy
   opt = {:proxy => @proxy}
 else
-  opt = nil
+  opt = {}
 end
 body = open(@url, opt) { |f| f.read }
 p body.size

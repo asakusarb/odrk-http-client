@@ -1,6 +1,6 @@
 require 'uri'
 # right_http_connection silently depends on active_support/core/ext (Object#blank?)
-require 'active_support/all'
+require 'active_support/core_ext/object/blank'
 require 'right_http_connection'
 
 require File.expand_path('sample_setting', File.dirname(__FILE__))
@@ -15,7 +15,7 @@ if proxy
     :proxy_password => proxy.password
   }
 else
-  opt = nil
+  opt = {}
 end
 
 conn = Rightscale::HttpConnection.new(opt)
