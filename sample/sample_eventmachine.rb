@@ -2,6 +2,7 @@ require 'uri'
 require 'eventmachine'
 
 require File.expand_path('sample_setting', File.dirname(__FILE__))
+# No proxy support.
 url = URI.parse(@url)
 
 body = nil
