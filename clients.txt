@@ -1,4 +1,4 @@
-module name,            gem, 1.9, repo
+module name,            gem, 1.9, repo, sync, parallel, async, thread model, error handling, logging, wiredump dubug, proxy, proxy auth, SSL, trust anchor, SNI, gzip, put/delete, cookie, multipart, digest auth, NTLM auth, encoding, redirect, keep-alive, streaming
 net/http,               no,  yes
 open-uri,               no,  yes
 curb,                   yes, yes, https://github.com/taf2/curb/
