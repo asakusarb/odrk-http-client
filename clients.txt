@@ -11,7 +11,7 @@ patron,                 yes, yes, https://github.com/toland/patron
 rest-client,            yes, yes, https://github.com/archiloque/rest-client       
 right_http_connection,  yes, yes, https://github.com/rightscale/right_http_connection
 rufus-verbs,            yes, yes, https://github.com/jmettraux/rufus-verbs        
-simplehttp,             yes, yes, http://simplehttp.rubyforge.org/
+simplehttp,             yes, yes, https://github.com/a2800276/simplehttp
 typhoeus,               yes, yes, https://github.com/dbalatero/typhoeus   
 wrest,                  yes, yes, https://github.com/kaiwren/wrest
 curl-multi,             yes, no,  https://github.com/kball/curl_multi.rb  
