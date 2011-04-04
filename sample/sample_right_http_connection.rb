@@ -26,7 +26,7 @@ req = {
   :protocol => url.scheme
 }
 
-body = conn.request(req).read_body
+body = conn.request(req).body
 conn.finish
 
 p body.size

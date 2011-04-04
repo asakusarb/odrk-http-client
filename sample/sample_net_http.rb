@@ -11,10 +11,5 @@ else
   c = Net::HTTP.new(url.host, url.port)
 end
 
-c.start
-begin
-  body = c.get(url.path).read_body
-ensure
-  c.finish
-end
+body = c.get(url.path).body
 p body.size
