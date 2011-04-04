@@ -69,4 +69,28 @@ class TestWrest < Test::Unit::TestCase
       (@url + 'redirect_self').to_uri(:follow_redirects_limit => 10).get
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      Wrest::Http::Session.new(server.url) do |s|
+        5.times do
+          assert_equal('12345', s.get('/').body)
+        end
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      Wrest::Http::Session.new(server.url) do |s|
+        5.times do
+          assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', s.get('/chunked').body)
+        end
+      end
+    ensure
+      server.close
+    end
+  end
 end

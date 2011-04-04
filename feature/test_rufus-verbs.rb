@@ -84,5 +84,25 @@ class TestRufusVerbs < Test::Unit::TestCase
       get(@url + 'redirect_self', :max_redirections => 10).body
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('12345', get(server.url).body)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', get(server.url + 'chunked').body)
+      end
+    ensure
+      server.close
+    end
+  end
 end
 

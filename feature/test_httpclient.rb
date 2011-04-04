@@ -85,4 +85,18 @@ class TestHTTPClient < Test::Unit::TestCase
       @client.get_content(@url + 'redirect_self')
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    5.times do
+      assert_equal('12345', @client.get(server.url).body)
+    end
+    server.close
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    5.times do
+      assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
+    end
+    server.close
+  end
 end

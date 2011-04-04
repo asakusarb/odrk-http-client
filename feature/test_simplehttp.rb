@@ -72,5 +72,25 @@ class TestSimpleHTTP < Test::Unit::TestCase
       h.get
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('12345', SimpleHttp.new(server.url).get)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', SimpleHttp.new(server.url + 'chunked').get)
+      end
+    ensure
+      server.close
+    end
+  end
 end
 

@@ -95,5 +95,25 @@ class TestRightHttpConnection < Test::Unit::TestCase
   def test_redirect
     assert_equal('hello', @client.request(get(@url, '/redirect3')))
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('12345', @client.request(get(URI.parse(server.url), '/')).body)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.request(get(URI.parse(server.url), '/chunked')).body)
+      end
+    ensure
+      server.close
+    end
+  end
 end
 

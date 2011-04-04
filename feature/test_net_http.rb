@@ -77,5 +77,33 @@ class TestNetHTTP < Test::Unit::TestCase
       @client.get(@url + 'redirect_self')
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    url = URI.parse(server.url)
+    c = Net::HTTP.new(url.host, url.port)
+    c.start
+    begin
+      5.times do
+        assert_equal('12345', c.get(url.path).body)
+      end
+    ensure
+      c.finish
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    url = URI.parse(server.url)
+    c = Net::HTTP.new(url.host, url.port)
+    c.start
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', c.get(url.path + 'chunked').body)
+      end
+    ensure
+      c.finish
+      server.close
+    end
+  end
 end
 

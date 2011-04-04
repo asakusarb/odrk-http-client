@@ -89,5 +89,25 @@ class TestHTTParty < Test::Unit::TestCase
       @client.get(@url + 'redirect_self', :limit => 10).body
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('12345', @client.get(server.url).body)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
+      end
+    ensure
+      server.close
+    end
+  end
 end
 

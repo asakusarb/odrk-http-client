@@ -58,14 +58,10 @@ class TestTyphoeus < Test::Unit::TestCase
   end
 
   def test_post_multipart
-    # we cannot use Typhoeus::Request?
-    flunk 'typhous blocks when posting. wired...'
-    easy = Typhoeus::Easy.new
-    easy.url = @url + 'servlet'
-    easy.method = :post
-    easy.params = {:upload => __FILE__}
-    easy.perform
-    assert_match(/FIND_TAG_IN_THIS_FILE/, easy.body_str)
+    File.open(__FILE__) do |file|
+      res = Typhoeus::Request.post(@url + 'servlet', :params => {:upload => file})
+      assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
+    end
   end
 
   def test_basic_auth
@@ -86,5 +82,25 @@ class TestTyphoeus < Test::Unit::TestCase
   def test_redirect_loop_detection
     res = Typhoeus::Request.get(@url + 'redirect_self', :follow_location => true, :max_redirects => 10)
     assert_equal("Number of redirects hit maximum amount", res.curl_error_message)
+  end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('12345', @client.get(server.url).body)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
+      end
+    ensure
+      server.close
+    end
   end
 end

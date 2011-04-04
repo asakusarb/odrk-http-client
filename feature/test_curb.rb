@@ -115,5 +115,29 @@ class TestCurb < Test::Unit::TestCase
       easy.http_get
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      easy = Curl::Easy.new(server.url)
+      5.times do
+        easy.http_get
+        assert_equal('12345', easy.body_str)
+      end
+    ensure
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    begin
+      easy = Curl::Easy.new(server.url + 'chunked')
+      5.times do
+        easy.http_get
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', easy.body_str)
+      end
+    ensure
+      server.close
+    end
+  end
 end
 

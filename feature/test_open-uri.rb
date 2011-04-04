@@ -55,5 +55,13 @@ class TestOpenURI < Test::Unit::TestCase
       open(@url + 'redirect_self') { |f| f.read }
     end
   end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    5.times do
+      assert_equal('12345', open(server.url) { |f| f.read })
+    end
+    server.close
+  end
 end
 
