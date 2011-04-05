@@ -9,12 +9,7 @@ class TestNetHTTP < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
     url = URI.parse($url)
-    proxy = URI.parse($proxy) if $proxy
-    if proxy
-      @client = Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password).new(url.host, url.port)
-    else
-      @client = Net::HTTP.new(url.host, url.port)
-    end
+    @client = Net::HTTP.new(url.host, url.port)
     @client.set_debug_output(STDERR) if $DEBUG
     @url = $url
   end

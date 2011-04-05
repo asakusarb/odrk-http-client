@@ -12,7 +12,6 @@ class TestRufusVerbs < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
     @url = $url
-    @proxy = $proxy
   end
 
   def teardown

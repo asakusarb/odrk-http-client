@@ -12,8 +12,6 @@ class TestHTTParty < Test::Unit::TestCase
 
   def setup
     @server = HTTPServer.new($host, $port)
-    proxy = URI.parse($proxy) if $proxy
-    HTTPartyClient.http_proxy(proxy.host, proxy.port) if proxy
     @client = HTTPartyClient
     @client.debug_output(STDERR) if $DEBUG
     @url = $url

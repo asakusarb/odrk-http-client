@@ -8,7 +8,7 @@ require File.expand_path('./httpserver', File.dirname(__FILE__))
 class TestHTTPClient < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
-    @client = HTTPClient.new($proxy)
+    @client = HTTPClient.new
     @url = $url
   end
 

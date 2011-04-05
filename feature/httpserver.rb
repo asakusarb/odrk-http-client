@@ -3,8 +3,6 @@ require 'logger'
 require 'cgi'
 
 class HTTPServer < WEBrick::HTTPServer
-  Port = 17171
-
   def initialize(host, port)
     @logger = Logger.new(STDERR)
     @logger.level = Logger::Severity::FATAL
@@ -14,24 +12,29 @@ class HTTPServer < WEBrick::HTTPServer
       :Logger => @logger,
       :AccessLog => []
     )
-    [:hello, :cookies, :redirect1, :redirect2, :redirect3, :redirect_self, :chunked, :largebody, :status, :compressed].each do |sym|
+    [
+      :hello,
+      :cookies,
+      :redirect1, :redirect2, :redirect3,
+      :redirect_self,
+      :chunked,
+      :largebody,
+      :compressed,
+      :basic_auth, :digest_auth, :digest_sess_auth
+    ].each do |sym|
       self.mount(
 	"/#{sym}",
 	WEBrick::HTTPServlet::ProcHandler.new(method("do_#{sym}").to_proc)
       )
     end
-    self.mount('/servlet', FeatureServlet.new(self))
-    self.mount('/basic_auth', WEBrick::HTTPServlet::ProcHandler.new(method(:do_basic_auth).to_proc))
-    self.mount('/digest_auth', WEBrick::HTTPServlet::ProcHandler.new(method(:do_digest_auth).to_proc))
-    self.mount('/digest_sess_auth', WEBrick::HTTPServlet::ProcHandler.new(method(:do_digest_sess_auth).to_proc))
     htpasswd = File.join(File.dirname(__FILE__), 'fixture', 'htpasswd')
     htpasswd_userdb = WEBrick::HTTPAuth::Htpasswd.new(htpasswd)
-    htdigest = File.join(File.dirname(__FILE__), 'fixture', 'htdigest')
-    htdigest_userdb = WEBrick::HTTPAuth::Htdigest.new(htdigest)
     @basic_auth = WEBrick::HTTPAuth::BasicAuth.new(
       :Realm => 'auth',
       :UserDB => htpasswd_userdb
     )
+    htdigest = File.join(File.dirname(__FILE__), 'fixture', 'htdigest')
+    htdigest_userdb = WEBrick::HTTPAuth::Htdigest.new(htdigest)
     @digest_auth = WEBrick::HTTPAuth::DigestAuth.new(
       :Algorithm => 'MD5',
       :Realm => 'auth',
@@ -42,6 +45,7 @@ class HTTPServer < WEBrick::HTTPServer
       :Realm => 'auth',
       :UserDB => htdigest_userdb
     )
+    self.mount('/servlet', FeatureServlet.new(self))
     @server_thread = start_server_thread(self)
   end
 
@@ -120,10 +124,6 @@ private
     else
       res.body = 'not compressed'
     end
-  end
-
-  def do_status(req, res)
-    res.status = req.query['status'].to_i
   end
 
   def do_basic_auth(req, res)

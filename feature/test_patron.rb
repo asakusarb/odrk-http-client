@@ -12,7 +12,6 @@ class TestPatron < Test::Unit::TestCase
     @client = Patron::Session.new
     url = URI.parse($url)
     @client.base_url = (url + "/").to_s
-    @client.proxy = $proxy
     @url = url.path.sub(/^\//, '')
   end
 

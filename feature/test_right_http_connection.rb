@@ -10,18 +10,7 @@ require File.expand_path('./httpserver', File.dirname(__FILE__))
 class TestRightHttpConnection < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
-    proxy = URI.parse($proxy) if $proxy
-    if proxy
-      opt = {
-        :proxy_host => proxy.host,
-        :proxy_port => proxy.port,
-        :proxy_username => proxy.user,
-        :proxy_password => proxy.password
-      }
-    else
-      opt = {}
-    end
-    @client = Rightscale::HttpConnection.new(opt)
+    @client = Rightscale::HttpConnection.new
     @url = URI.parse($url)
   end
 

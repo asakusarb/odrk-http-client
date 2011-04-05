@@ -8,7 +8,6 @@ require File.expand_path('./httpserver', File.dirname(__FILE__))
 class TestCurb < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
-    @proxy = $proxy
     @url = $url
   end
 

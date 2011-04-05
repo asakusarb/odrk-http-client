@@ -8,13 +8,6 @@ require File.expand_path('./httpserver', File.dirname(__FILE__))
 class TestOpenURI < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
-    if $proxy_user
-      @opt = {:proxy_http_basic_authentication => [$proxy, $proxy_user, $proxy_pass]}
-    elsif @proxy
-      @opt = {:proxy => $proxy}
-    else
-      @opt = {}
-    end
     @url = $url
   end
 
@@ -23,8 +16,8 @@ class TestOpenURI < Test::Unit::TestCase
   end
 
   def test_gzip_get
-    assert_equal('hello', open(@url + 'compressed?enc=gzip', @opt) { |f| f.read })
-    assert_equal('hello', open(@url + 'compressed?enc=deflate', @opt) { |f| f.read })
+    assert_equal('hello', open(@url + 'compressed?enc=gzip') { |f| f.read })
+    assert_equal('hello', open(@url + 'compressed?enc=deflate') { |f| f.read })
   end
 
   def test_gzip_post

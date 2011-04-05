@@ -53,6 +53,24 @@ class TestExcon < Test::Unit::TestCase
     end
   end
 
+  def test_basic_auth
+    flunk('basic auth is not supported')
+  end
+
+  def test_digest_auth
+    flunk('digest auth is not supported')
+  end
+
+  def test_redirect
+    assert_equal('hello', @client.get(@url + 'redirect3').body)
+  end
+
+  def test_redirect_loop_detection
+    assert_raise(RuntimeError) do
+      @client.get(@url + 'redirect_self')
+    end
+  end
+
   def test_keepalive
     server = HTTPServer::KeepAliveServer.new($host)
     begin
