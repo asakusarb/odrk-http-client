@@ -1,18 +1,31 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'open-uri'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestOpenURI < Test::Unit::TestCase
-  def setup
-    @server = HTTPServer.new($host, $port)
-    @url = $url
+class TestOpenURI < OdrkHTTPClientTestCase
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      open(ssl_url + 'hello') { |f| f.read }
+    end
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
+    assert_equal('hello ssl', open(ssl_url + 'hello', :ssl_ca_cert => ca_path) { |f| f.read })
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
+    assert_raise(OpenSSL::SSL::SSLError) do
+      open(ssl_url + 'hello', :ssl_ca_cert => ca_path) { |f| f.read }
+    end
   end
 
   def test_gzip_get

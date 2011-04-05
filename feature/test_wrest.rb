@@ -1,19 +1,36 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'wrest'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestWrest < Test::Unit::TestCase
+class TestWrest < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     Wrest.use_native! # use net/http. Cannot use Patron because it's blocking.
-    @url = $url
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      ssl_url.to_uri.get
+    end
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
+    assert_equal('hello ssl', (ssl_url + 'hello').to_uri(:ca_path => ca_path).get.body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
+    assert_raise(OpenSSL::SSL::SSLError) do
+      (ssl_url + 'hello').to_uri(:ca_path => ca_path).get
+    end
   end
 
   def test_gzip_get

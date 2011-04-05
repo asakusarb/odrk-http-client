@@ -1,19 +1,32 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'typhoeus'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestTyphoeus < Test::Unit::TestCase
+class TestTyphoeus < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     @client = Typhoeus::Request
-    @url = $url
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_equal("Peer certificate cannot be authenticated with known CA certificates", @client.get(ssl_url + 'hello').curl_error_message)
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_equal('hello ssl', @client.get(ssl_url + 'hello', :ssl_cacert => ca_file).body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_equal("SSL peer certificate or SSH remote key was not OK", @client.get(ssl_url + 'hello', :ssl_cacert => ca_file).curl_error_message)
   end
 
   def test_gzip_get
@@ -47,14 +60,21 @@ class TestTyphoeus < Test::Unit::TestCase
   end
 
   def test_cookies
-    res = @client.get(@url + 'cookies', :header => {'Cookie' => 'foo=0; bar=1'})
-    assert_equal(2, res.cookies.size)
+    res = @client.get(@url + 'cookies', :headers => {'Cookie' => 'foo=0; bar=1'})
+    # !! It returns 'Set-Cookie'. 2 or more response headers causes strange behavior?
+    assert_equal(2, res.headers['Set-Cookie'].size)
+    res.headers['Set-Cookie'].find { |c| /foo=(\d)/ =~ c }
+    assert_equal('1', $1)
+    res.headers['Set-Cookie'].find { |c| /bar=(\d)/ =~ c }
+    assert_equal('2', $1)
     5.times do
       res = @client.get(@url + 'cookies')
     end
-    assert_equal(2, @client.cookies.size)
-    assert_equal('6', @client.cookies.find { |c| c.name == 'foo' }.value)
-    assert_equal('7', @client.cookies.find { |c| c.name == 'bar' }.value)
+    assert_equal(2, res.headers['Set-Cookie'].size)
+    res.headers['Set-Cookie'].find { |c| /foo=(\d)/ =~ c }
+    assert_equal('6', $1)
+    res.headers['Set-Cookie'].find { |c| /bar=(\d)/ =~ c }
+    assert_equal('7', $1)
   end
 
   def test_post_multipart

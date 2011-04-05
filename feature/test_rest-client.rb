@@ -1,19 +1,39 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'rest_client'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestRestClient < Test::Unit::TestCase
+class TestRestClient < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     @client = RestClient
-    @url = $url
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    @client = RestClient::Request.new(:method => :get, :url => ssl_url + 'hello')
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.execute
+    end
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    @client = RestClient::Request.new(:method => :get, :url => ssl_url + 'hello', :verify_ssl => OpenSSL::SSL::VERIFY_PEER, :ssl_ca_file => ca_file)
+    assert_equal('hello ssl', @client.execute.body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    @client = RestClient::Request.new(:method => :get, :url => ssl_url + 'hello', :verify_ssl => OpenSSL::SSL::VERIFY_PEER, :ssl_ca_file => ca_file)
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.execute
+    end
   end
 
   def test_gzip_get

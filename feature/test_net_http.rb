@@ -1,21 +1,46 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'net/http'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestNetHTTP < Test::Unit::TestCase
+class TestNetHTTP < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     url = URI.parse($url)
     @client = Net::HTTP.new(url.host, url.port)
     @client.set_debug_output(STDERR) if $DEBUG
-    @url = $url
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    @client = Net::HTTP.new('localhost', $ssl_port)
+    @client.use_ssl = true
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello')
+    end
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    @client = Net::HTTP.new('localhost', $ssl_port)
+    @client.use_ssl = true
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    @client.ca_file = ca_file
+    assert_equal('hello ssl', @client.get(ssl_url + 'hello').body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    @client = Net::HTTP.new('127.0.0.1', $ssl_port)
+    @client.use_ssl = true
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    @client.ca_file = ca_file
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello')
+    end
   end
 
   def test_gzip_get

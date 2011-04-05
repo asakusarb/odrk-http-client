@@ -1,18 +1,34 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'curb'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestCurb < Test::Unit::TestCase
-  def setup
-    @server = HTTPServer.new($host, $port)
-    @url = $url
+class TestCurb < OdrkHTTPClientTestCase
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://ubuntu:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      Curl::Easy.http_get(ssl_url + 'hello')
+    end
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    easy = Curl::Easy.new(ssl_url + 'hello')
+    easy.cacert = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    easy.http_get
+    assert_equal('hello ssl', easy.body_str)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    easy = Curl::Easy.new(ssl_url + 'hello')
+    easy.cacert = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_raise(OpenSSL::SSL::SSLError) do
+      easy.http_get
+    end
   end
 
   def test_gzip_get
@@ -58,13 +74,18 @@ class TestCurb < Test::Unit::TestCase
     easy.cookiefile = "some.file"
     easy.cookies = 'foo=0;bar=1'
     easy.http_get
-    assert_equal(2, easy.cookies.size)
+    /foo=(\d)/ =~ easy.header_str
+    assert_equal('1', $1)
+    /bar=(\d)/ =~ easy.header_str
+    assert_equal('2', $1)
     5.times do
+      easy.cookies = ''
       easy.http_get
     end
-    assert_equal(2, easy.cookies.size)
-    assert_equal('6', easy.cookies.find { |c| c.name == 'foo' }.value)
-    assert_equal('7', easy.cookies.find { |c| c.name == 'bar' }.value)
+    /foo=(\d)/ =~ easy.header_str
+    assert_equal('6', $1)
+    /bar=(\d)/ =~ easy.header_str
+    assert_equal('7', $1)
   end
 
   def test_post_multipart

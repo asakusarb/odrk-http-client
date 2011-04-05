@@ -1,18 +1,43 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'simplehttp'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestSimpleHTTP < Test::Unit::TestCase
-  def setup
-    @server = HTTPServer.new($host, $port)
-    @url = $url
+class TestSimpleHTTP < OdrkHTTPClientTestCase
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      SimpleHttp.new(ssl_url + 'hello').get
+    end
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl_ca
+    # !! this test should fail.
+    # !! run SSL_CERT_DIR=./fixture/ ruby test_simplehttp.rb -n test_ssl_ca
+    setup_sslserver
+    ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
+    begin
+      ssl_url = "https://localhost:#{$ssl_port}/"
+      assert_equal('hello ssl', SimpleHttp.new(ssl_url + 'hello').get)
+    ensure
+      ENV.delete('SSL_CERT_DIR')
+    end
+  end
+
+  def test_ssl_hostname
+    # !! this test should fail.
+    # !! run SSL_CERT_DIR=./fixture/ ruby test_simplehttp.rb -n test_ssl_hostname
+    setup_sslserver
+    ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
+    begin
+      ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+      assert_raise(OpenSSL::SSL::SSLError) do
+        SimpleHttp.new(ssl_url + 'hello').get
+      end
+    ensure
+      ENV.delete('SSL_CERT_DIR')
+    end
   end
 
   def test_gzip_get

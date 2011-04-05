@@ -69,7 +69,8 @@ private
   def do_cookies(req, res)
     req.cookies.each do |cookie|
       c = WEBrick::Cookie.new(cookie.name, (cookie.value.to_i + 1).to_s)
-      c.domain = 'localhost'
+      c.domain = $host
+      c.path = '/'
       c.expires = Time.now + 60 * 60 * 24 * 365
       res.cookies << c
     end

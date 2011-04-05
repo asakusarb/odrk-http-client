@@ -1,20 +1,9 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'eventmachine'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestEventMachine < Test::Unit::TestCase
-  def setup
-    @server = HTTPServer.new($host, $port)
-    @url = $url
-  end
-
-  def teardown
-    @server.shutdown
-  end
-
+class TestEventMachine < OdrkHTTPClientTestCase
   def request(method, url)
     content = nil
     url = URI.parse(url)

@@ -1,24 +1,28 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'httparty'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestHTTParty < Test::Unit::TestCase
+class TestHTTParty < OdrkHTTPClientTestCase
   class HTTPartyClient
     include HTTParty
   end
 
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     @client = HTTPartyClient
     @client.debug_output(STDERR) if $DEBUG
-    @url = $url
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello')
+    end
+    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
+    @client.ssl_ca_path(ca_path)
+    assert_equal('hello ssl', @client.get(ssl_url + 'hello').body)
   end
 
   def test_gzip_get

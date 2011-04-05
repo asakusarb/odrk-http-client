@@ -1,13 +1,11 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'faraday'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestFaraday < Test::Unit::TestCase
+class TestFaraday < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     url = URI.parse($url)
     @client = Faraday.new(:url => (url + "/").to_s) { |builder|
       builder.adapter :typhoeus
@@ -15,28 +13,56 @@ class TestFaraday < Test::Unit::TestCase
     @url = url.path
   end
 
-  def teardown
-    @server.shutdown
+  def setup_nethttp_client(opt = {})
+    url = URI.parse($url)
+    @client = Faraday.new(opt.merge(:url => (url + "/").to_s)) { |builder|
+      builder.adapter :net_http
+    }
+  end
+
+  def test_ssl
+    setup_sslserver
+    setup_nethttp_client
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello')
+    end
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    setup_nethttp_client(:ssl => {:ca_file => ca_file})
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_equal('hello ssl', @client.get(ssl_url + 'hello').body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    setup_nethttp_client(:ssl => {:ca_file => ca_file})
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello')
+    end
   end
 
   def test_gzip_get
-    flunk('compression not supported')
     assert_equal('hello', @client.get(@url + 'compressed?enc=gzip').body)
     assert_equal('hello', @client.get(@url + 'compressed?enc=deflate').body)
   end
 
   def test_gzip_post
-    flunk('compression not supported')
-    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'gzip').body)
-    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'deflate').body)
+    assert_equal('hello', @client.post(@url + 'compressed', 'enc=gzip').body)
+    assert_equal('hello', @client.post(@url + 'compressed', 'enc=deflate').body)
   end
 
   def test_put
     assert_equal("put", @client.put(@url + 'servlet').body)
-    res = @client.put(@url + 'servlet', {1=>2, 3=>4})
+    res = @client.put(@url + 'servlet', '1=2&3=4')
     assert_equal('1=2&3=4', res.headers["x-query"])
     # bytesize
-    res = @client.put(@url + 'servlet', 'txt' => 'あいうえお')
+    res = @client.put(@url + 'servlet', 'txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A')
     assert_equal('txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A', res.headers["x-query"])
     assert_equal('15', res.headers["x-size"])
   end

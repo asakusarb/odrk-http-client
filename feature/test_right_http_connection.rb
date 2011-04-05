@@ -1,41 +1,59 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 # right_http_connection silently depends on active_support/core/ext (Object#blank?)
 require 'active_support/core_ext/object/blank'
 require 'right_http_connection'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestRightHttpConnection < Test::Unit::TestCase
+class TestRightHttpConnection < OdrkHTTPClientTestCase
   def setup
-    @server = HTTPServer.new($host, $port)
+    super
     @client = Rightscale::HttpConnection.new
     @url = URI.parse($url)
   end
 
-  def teardown
-    @server.shutdown
-  end
-
-  def get(url, path)
+  def get(url, path, opt = {})
     request = Net::HTTP::Get.new(path)
-    req(request, url)
+    req(request, url, opt)
   end
 
-  def post(url, path, form)
+  def post(url, path, form, opt = {})
     request = Net::HTTP::Post.new(path)
     request.set_form_data(form)
-    req(request, url)
+    req(request, url, opt)
   end
 
-  def req(request, url)
-    {
+  def req(request, url, opt = {})
+    opt.merge(
       :request => request,
       :server => url.host,
       :port => url.port,
       :protocol => url.scheme
-    }
+    )
+  end
+
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.request(get(URI.parse(ssl_url), '/hello'))
+    end
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_equal('hello ssl', @client.request(get(URI.parse(ssl_url), '/hello', :ca_file => ca_file, :fail_if_ca_mismatch => true)).body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.request(get(URI.parse(ssl_url), '/hello', :ca_file => ca_file, :fail_if_ca_mismatch => true))
+    end
   end
 
   def test_gzip_get

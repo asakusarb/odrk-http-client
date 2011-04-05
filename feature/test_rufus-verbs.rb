@@ -1,21 +1,41 @@
 # -*- encoding: utf-8 -*-
-require 'test/unit'
 require 'rufus-verbs'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
-require File.expand_path('./httpserver', File.dirname(__FILE__))
 
 
-class TestRufusVerbs < Test::Unit::TestCase
-
+class TestRufusVerbs < OdrkHTTPClientTestCase
   include Rufus::Verbs
 
-  def setup
-    @server = HTTPServer.new($host, $port)
-    @url = $url
+  def test_ssl
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    assert_raise(OpenSSL::SSL::SSLError) do
+      get(ssl_url + 'hello')
+    end
   end
 
-  def teardown
-    @server.shutdown
+  def test_ssl_ca
+    setup_sslserver
+    ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
+    begin
+      ssl_url = "https://localhost:#{$ssl_port}/"
+      assert_equal('hello ssl', get(ssl_url + 'hello', :ssl_verify_peer => true).body)
+    ensure
+      ENV.delete('SSL_CERT_DIR')
+    end
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
+    begin
+      ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+      assert_raise(OpenSSL::SSL::SSLError) do
+        get(ssl_url + 'hello', :ssl_verify_peer => true)
+      end
+    ensure
+      ENV.delete('SSL_CERT_DIR')
+    end
   end
 
   def test_gzip_get
@@ -45,15 +65,15 @@ class TestRufusVerbs < Test::Unit::TestCase
   def test_cookies
     ep = EndPoint.new(:cookies => true)
     # there's no direct way to set Cookie.
-    ep.cookies.add_cookie('localhost', '/', Rufus::Verbs::Cookie.new('foo', '0'))
-    ep.cookies.add_cookie('localhost', '/', Rufus::Verbs::Cookie.new('bar', '1'))
+    ep.cookies.add_cookie($host, '/', Rufus::Verbs::Cookie.new('foo', '0'))
+    ep.cookies.add_cookie($host, '/', Rufus::Verbs::Cookie.new('bar', '1'))
     res = ep.get(@url + 'cookies')
     assert_equal(2, ep.cookies.size)
     5.times do
       res = ep.get(@url + 'cookies')
     end
     assert_equal(2, ep.cookies.size)
-    c = ep.cookies.fetch_cookies('localhost', '/')
+    c = ep.cookies.fetch_cookies($host, '/')
     assert_equal('6', c.find { |c| c.name == 'foo' }.value)
     assert_equal('7', c.find { |c| c.name == 'bar' }.value)
   end
