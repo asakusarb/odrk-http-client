@@ -7,6 +7,7 @@ class TestHTTPClient < OdrkHTTPClientTestCase
   def setup
     super
     @client = HTTPClient.new
+    @client.debug_dev = STDERR if $DEBUG
   end
 
   def test_ssl
@@ -117,5 +118,25 @@ class TestHTTPClient < OdrkHTTPClientTestCase
       assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
     end
     server.close
+  end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    res = @client.post(@url + 'chunked', file)
+    assert(res.header['x-count'][0].to_i >= 100)
+    if filename = res.header['x-tmpfilename'][0]
+      File.unlink(filename)
+    end
+  end
+
+  def test_streaming_download
+    c = 0
+    @client.get(@url + 'largebody') do |str|
+      c += 1
+    end
+    assert(c > 600)
   end
 end

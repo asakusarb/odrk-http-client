@@ -122,5 +122,27 @@ class TestRightHttpConnection < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    res = @client.request(post(@url, '/chunked', file))
+    assert(res.header['x-count'].to_i >= 7)
+    if filename = res.header['x-tmpfilename']
+      File.unlink(filename)
+    end
+  end
+
+  def test_streaming_download
+    c = 0
+    @client.request(get(@url, '/largebody')) do |res|
+      res.read_body do |str|
+        c += 1
+      end
+    end
+    assert(c > 600)
+  end
 end
 

@@ -69,5 +69,15 @@ class TestOpenURI < OdrkHTTPClientTestCase
     end
     server.close
   end
+
+  def test_streaming_download
+    c = 0
+    open(@url + 'largebody') do |f|
+      while f.read(16384)
+        c += 1
+      end
+    end
+    assert(c > 600)
+  end
 end
 

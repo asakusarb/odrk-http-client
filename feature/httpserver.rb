@@ -17,7 +17,6 @@ class HTTPServer < WEBrick::HTTPServer
       :cookies,
       :redirect1, :redirect2, :redirect3,
       :redirect_self,
-      :chunked,
       :largebody,
       :compressed,
       :basic_auth, :digest_auth, :digest_sess_auth
@@ -27,6 +26,9 @@ class HTTPServer < WEBrick::HTTPServer
 	WEBrick::HTTPServlet::ProcHandler.new(method("do_#{sym}").to_proc)
       )
     end
+    chunked_handler = WEBrick::HTTPServlet::ProcHandler.new(method('do_chunked').to_proc)
+    chunked_handler.instance_eval { alias do_PUT do_GET }
+    self.mount("/chunked", chunked_handler)
     htpasswd = File.join(File.dirname(__FILE__), 'fixture', 'htpasswd')
     htpasswd_userdb = WEBrick::HTTPAuth::Htpasswd.new(htpasswd)
     @basic_auth = WEBrick::HTTPAuth::BasicAuth.new(
@@ -77,7 +79,7 @@ private
   end
 
   def do_hello(req, res)
-    res['content-type'] = 'text/html'
+    res['content-type'] = 'text/plain'
     res.body = "hello"
   end
 
@@ -98,16 +100,24 @@ private
   end
 
   def do_chunked(req, res)
+    c = 0
+    filename = __FILE__ + ".tmp.upload"
+    File.open(filename, 'wb') do |file|
+      req.body do |str|
+        file << str
+        c += 1
+      end
+    end
+    res['X-Count'] = c
+    res['X-TmpFilename'] = filename
+    file = File.open(filename)
     res.chunked = true
-    piper, pipew = IO.pipe
-    res.body = piper
-    pipew << req.query['msg']
-    pipew.close
+    res.body = file
   end
 
   def do_largebody(req, res)
-    res['content-type'] = 'text/html'
-    res.body = "a" * 1000 * 1000
+    res['content-type'] = 'text/plain'
+    res.body = "a" * 1000 * 1000 * 10
   end
 
   # compression result of 'hello'.

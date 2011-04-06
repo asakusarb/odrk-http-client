@@ -110,4 +110,28 @@ class TestWrest < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    req = Net::HTTP::Post.new(@url + 'chunked')
+    req.body_stream = file
+    # !! should be set by body_stream=
+    req['Transfer-Encoding'] = 'chunked'
+    res = @client.request(req)
+    assert(res.header['x-count'].to_i >= 100)
+    if filename = res.header['x-tmpfilename']
+      File.unlink(filename)
+    end
+  end
+
+  def test_streaming_upload
+    flunk('streaming upload not supported')
+  end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
 end

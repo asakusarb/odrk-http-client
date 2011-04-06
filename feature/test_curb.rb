@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'curb'
+require 'tempfile'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
 
 
@@ -157,6 +158,31 @@ class TestCurb < OdrkHTTPClientTestCase
       end
     ensure
       server.close
+    end
+  end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    easy = Curl::Easy.new(@url + 'chunked')
+    easy.put_data = file
+    easy.perform
+    /X-Count:\s*(\d+)/ =~ easy.header_str
+    assert($1.to_i >= 7)
+    if /X-TmpFilename:\s*([^\r\n]+)/ =~ easy.header_str
+      File.unlink($1)
+    end
+  end
+
+  def test_streaming_download
+    file = Tempfile.new('download')
+    begin
+      Curl::Easy.download(@url + 'largebody', file.path)
+      assert_equal(1000000, File.read(file.path).size)
+    ensure
+      file.unlink
     end
   end
 end

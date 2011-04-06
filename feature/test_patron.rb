@@ -137,4 +137,27 @@ class TestPatron < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    res = @client.request(:post, @url + 'chunked', {}, :file => file.path)
+    # !! case sensitive
+    assert(res.headers['X-Count'].to_i >= 26)
+    if filename = res.headers['X-Tmpfilename']
+      File.unlink(filename)
+    end
+  end
+
+  def test_streaming_download
+    file = Tempfile.new('download')
+    begin
+      @client.get_file(@url + 'largebody', file.path)
+      assert_equal(1000000, File.read(file.path).size)
+    ensure
+      file.unlink
+    end
+  end
 end

@@ -123,4 +123,12 @@ class TestTyphoeus < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    flunk('streaming upload not supported')
+  end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
 end

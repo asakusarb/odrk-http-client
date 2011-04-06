@@ -44,16 +44,16 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
   end
 
   def test_gzip_post
-    assert_equal('hello', post(@url + 'compressed', :d => 'enc=gzip').body)
-    assert_equal('hello', post(@url + 'compressed', :d => 'enc=deflate').body)
+    assert_equal('hello', post(@url + 'compressed', :data => 'enc=gzip').body)
+    assert_equal('hello', post(@url + 'compressed', :data => 'enc=deflate').body)
   end
 
   def test_put
     assert_equal("put", put(@url + 'servlet').body)
-    res = put(@url + 'servlet', :d => '1=2&3=4')
+    res = put(@url + 'servlet', :data => '1=2&3=4')
     assert_equal('1=2&3=4', res.header["x-query"])
     # bytesize
-    res = put(@url + 'servlet', :d => 'txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A')
+    res = put(@url + 'servlet', :data => 'txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A')
     assert_equal('txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A', res.header["x-query"])
     assert_equal('15', res.header["x-size"])
   end
@@ -80,7 +80,7 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
 
   def test_post_multipart
     File.open(__FILE__) do |file|
-      res = post(@url + 'servlet', :d => {:upload => file})
+      res = post(@url + 'servlet', :data => {:upload => file})
       assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
     end
   end
@@ -122,6 +122,14 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
     ensure
       server.close
     end
+  end
+
+  def test_streaming_upload
+    flunk('streaming upload not supported')
+  end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
   end
 end
 

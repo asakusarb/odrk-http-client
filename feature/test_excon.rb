@@ -110,4 +110,12 @@ class TestExcon < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_download
+    c = 0
+    @client.get(@url + 'largebody') do |res|
+      c += 1
+    end
+    assert_equal(10, c)
+  end
 end

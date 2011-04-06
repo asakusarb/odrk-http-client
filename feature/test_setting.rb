@@ -1,5 +1,6 @@
 require 'uri'
 require 'test/unit'
+require 'tempfile'
 require File.expand_path('./httpserver', File.dirname(__FILE__))
 require File.expand_path('./sslserver', File.dirname(__FILE__))
 
@@ -12,6 +13,7 @@ $url = "http://#{$host}:#{$port}/"
 class OdrkHTTPClientTestCase < Test::Unit::TestCase
   def setup
     @server = HTTPServer.new($host, $port)
+    @ssl_server = nil
     @url = $url
   end
 

@@ -117,5 +117,9 @@ class TestSimpleHTTP < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
 end
 

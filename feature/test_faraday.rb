@@ -130,4 +130,20 @@ class TestFaraday < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    setup_nethttp_client
+    res = @client.put(@url + 'chunked', file)
+    assert(res.header['x-count'][0].to_i >= 100)
+    if filename = res.header['x-tmpfilename'][0]
+      File.unlink(filename)
+    end
+  end
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
 end

@@ -20,9 +20,22 @@ class TestHTTParty < OdrkHTTPClientTestCase
     assert_raise(OpenSSL::SSL::SSLError) do
       @client.get(ssl_url + 'hello')
     end
-    ca_path = File.expand_path('./fixture/', File.dirname(__FILE__))
-    @client.ssl_ca_path(ca_path)
-    assert_equal('hello ssl', @client.get(ssl_url + 'hello').body)
+  end
+
+  def test_ssl_ca
+    setup_sslserver
+    ssl_url = "https://localhost:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_equal('hello ssl', @client.get(ssl_url + 'hello', :ssl_ca_file => ca_file).body)
+  end
+
+  def test_ssl_hostname
+    setup_sslserver
+    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(ssl_url + 'hello', :ssl_ca_file => ca_file)
+    end
   end
 
   def test_gzip_get
@@ -111,5 +124,12 @@ class TestHTTParty < OdrkHTTPClientTestCase
       server.close
     end
   end
-end
 
+  def test_streaming_upload
+    flunk('streaming upload not supported')
+  end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
+end

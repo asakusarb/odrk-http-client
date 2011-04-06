@@ -119,5 +119,22 @@ class TestRestClient < OdrkHTTPClientTestCase
       server.close
     end
   end
+
+  def test_streaming_upload
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    file.open
+    res = @client.post(@url + 'chunked', file)
+    # !! response header Hash keys are Symbols
+    assert(res.headers[:x_count].to_i >= 7)
+    if filename = res.headers[:x_tmpfilename]
+      File.unlink(filename)
+    end
+  end
+
+  def test_streaming_download
+    flunk('streaming download not supported')
+  end
 end
 
