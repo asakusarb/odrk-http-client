@@ -246,7 +246,6 @@ private
     def initialize(host)
       @server = TCPServer.open(host, 0)
       @server_thread = Thread.new {
-        Thread.abort_on_exception = true
         sock = @server.accept
         create_keepalive_thread(sock)
       }
@@ -266,7 +265,6 @@ private
 
     def create_keepalive_thread(sock)
       Thread.new {
-        Thread.abort_on_exception = true
         5.times do
           req = sock.gets
           while line = sock.gets

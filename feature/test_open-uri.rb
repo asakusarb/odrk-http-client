@@ -64,8 +64,10 @@ class TestOpenURI < OdrkHTTPClientTestCase
 
   def test_keepalive
     server = HTTPServer::KeepAliveServer.new($host)
-    5.times do
-      assert_equal('12345', open(server.url) { |f| f.read })
+    timeout(2) do
+      5.times do
+        assert_equal('12345', open(server.url) { |f| f.read })
+      end
     end
     server.close
   end

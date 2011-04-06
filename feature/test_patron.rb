@@ -155,7 +155,7 @@ class TestPatron < OdrkHTTPClientTestCase
     file = Tempfile.new('download')
     begin
       @client.get_file(@url + 'largebody', file.path)
-      assert_equal(1000000, File.read(file.path).size)
+      assert_equal(10000000, File.read(file.path).size)
     ensure
       file.unlink
     end

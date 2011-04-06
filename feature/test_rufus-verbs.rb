@@ -106,12 +106,14 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
 
   def test_keepalive
     server = HTTPServer::KeepAliveServer.new($host)
-    begin
-      5.times do
-        assert_equal('12345', get(server.url).body)
+    timeout(2) do
+      begin
+        5.times do
+          assert_equal('12345', get(server.url).body)
+        end
+      ensure
+        server.close
       end
-    ensure
-      server.close
     end
     # chunked
     server = HTTPServer::KeepAliveServer.new($host)

@@ -180,7 +180,7 @@ class TestCurb < OdrkHTTPClientTestCase
     file = Tempfile.new('download')
     begin
       Curl::Easy.download(@url + 'largebody', file.path)
-      assert_equal(1000000, File.read(file.path).size)
+      assert_equal(10000000, File.read(file.path).size)
     ensure
       file.unlink
     end

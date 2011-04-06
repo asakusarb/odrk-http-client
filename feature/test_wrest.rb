@@ -87,27 +87,30 @@ class TestWrest < OdrkHTTPClientTestCase
     end
   end
 
-  def test_keepalive
-    server = HTTPServer::KeepAliveServer.new($host)
-    begin
-      Wrest::Http::Session.new(server.url) do |s|
-        5.times do
-          assert_equal('12345', s.get('/').body)
+  # This test with Excon causes 1.8.7 to crash at server side.
+  if RUBY_VERSION > "1.9"
+    def test_keepalive
+      server = HTTPServer::KeepAliveServer.new($host)
+      begin
+        Wrest::Http::Session.new(server.url) do |s|
+          5.times do
+            assert_equal('12345', s.get('/').body)
+          end
         end
+      ensure
+        server.close
       end
-    ensure
-      server.close
-    end
-    # chunked
-    server = HTTPServer::KeepAliveServer.new($host)
-    begin
-      Wrest::Http::Session.new(server.url) do |s|
-        5.times do
-          assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', s.get('/chunked').body)
+      # chunked
+      server = HTTPServer::KeepAliveServer.new($host)
+      begin
+        Wrest::Http::Session.new(server.url) do |s|
+          5.times do
+            assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', s.get('/chunked').body)
+          end
         end
+      ensure
+        server.close
       end
-    ensure
-      server.close
     end
   end
 
