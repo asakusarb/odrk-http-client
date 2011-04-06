@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require 'rest_client'
+require 'restclient'
 require File.expand_path('./test_setting', File.dirname(__FILE__))
 
 

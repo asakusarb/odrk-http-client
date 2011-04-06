@@ -1,4 +1,4 @@
-require 'rest_client'
+require 'restclient'
 
 require File.expand_path('sample_setting', File.dirname(__FILE__))
 
