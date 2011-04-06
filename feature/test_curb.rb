@@ -185,5 +185,13 @@ class TestCurb < OdrkHTTPClientTestCase
       file.unlink
     end
   end
+
+  if RUBY_VERSION > "1.9"
+    def test_charset
+      body = Curl::Easy.http_get(@url + 'charset').body_str
+      assert_equal(Encoding::EUC_JP, body.encoding)
+      assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
+    end
+  end
 end
 

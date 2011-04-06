@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'webrick'
 require 'logger'
 require 'cgi'
@@ -19,7 +20,8 @@ class HTTPServer < WEBrick::HTTPServer
       :redirect_self,
       :largebody,
       :compressed,
-      :basic_auth, :digest_auth, :digest_sess_auth
+      :basic_auth, :digest_auth, :digest_sess_auth,
+      :charset
     ].each do |sym|
       self.mount(
 	"/#{sym}",
@@ -155,6 +157,15 @@ private
     res['content-type'] = 'text/plain'
     res['x-query'] = req.body
     res.body = 'digest_sess_auth OK' + req.query_string.to_s
+  end
+
+  def do_charset(req, res)
+    if RUBY_VERSION > "1.9"
+      res.body = 'あいうえお'.encode("euc-jp")
+      res['Content-Type'] = 'text/plain; charset=euc-jp'
+    else
+      res.body = 'this endpoing for 1.9 or later'
+    end
   end
 
   class FeatureServlet < WEBrick::HTTPServlet::AbstractServlet

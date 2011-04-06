@@ -134,4 +134,12 @@ class TestWrest < OdrkHTTPClientTestCase
   def test_streaming_download
     flunk('streaming download not supported')
   end
+
+  if RUBY_VERSION > "1.9"
+    def test_charset
+      body = (@url + 'charset').to_uri.get.body
+      assert_equal(Encoding::EUC_JP, body.encoding)
+      assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
+    end
+  end
 end

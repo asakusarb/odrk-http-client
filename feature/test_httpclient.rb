@@ -139,4 +139,12 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     end
     assert(c > 600)
   end
+
+  if RUBY_VERSION > "1.9"
+    def test_charset
+      body = @client.get(@url + 'charset').body
+      assert_equal(Encoding::EUC_JP, body.encoding)
+      assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
+    end
+  end
 end
