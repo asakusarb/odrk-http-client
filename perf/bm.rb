@@ -47,13 +47,15 @@ targets = [
 # threads = 1; number = 50; targets = [:eventmachine]
 
 def do_threads(number)
-  threads = []
-  results = []
-  number.times.map {
-    Thread.new {
-      results << yield
-    }
-  }.each(&:join)
+  if number == 1
+    yield
+  else
+    number.times.map {
+      Thread.new {
+        results << yield
+      }
+    }.each(&:join)
+  end
 end
 
 class NullLogger

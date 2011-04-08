@@ -105,6 +105,7 @@ class TestTyphoeus < OdrkHTTPClientTestCase
   end
 
   def test_keepalive
+  timeout(2) do
     server = HTTPServer::KeepAliveServer.new($host)
     begin
       5.times do
@@ -122,6 +123,7 @@ class TestTyphoeus < OdrkHTTPClientTestCase
     ensure
       server.close
     end
+  end
   end
 
   def test_streaming_upload

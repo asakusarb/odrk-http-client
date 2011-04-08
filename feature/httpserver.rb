@@ -53,11 +53,15 @@ class HTTPServer < WEBrick::HTTPServer
     @server_thread = start_server_thread(self)
   end
 
+  def shutdown
+    super
+    @server_thread.join if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+  end
+
 private
 
   def start_server_thread(server)
     t = Thread.new {
-      Thread.current.abort_on_exception = true
       server.start
     }
     while server.status != :Running

@@ -105,15 +105,14 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
   end
 
   def test_keepalive
+  timeout(2) do
     server = HTTPServer::KeepAliveServer.new($host)
-    timeout(2) do
-      begin
-        5.times do
-          assert_equal('12345', get(server.url).body)
-        end
-      ensure
-        server.close
+    begin
+      5.times do
+        assert_equal('12345', get(server.url).body)
       end
+    ensure
+      server.close
     end
     # chunked
     server = HTTPServer::KeepAliveServer.new($host)
@@ -124,6 +123,7 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
     ensure
       server.close
     end
+  end
   end
 
   def test_streaming_upload

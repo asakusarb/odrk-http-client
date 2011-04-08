@@ -152,7 +152,7 @@ class TestNet2HTTP < OdrkHTTPClientTestCase
     @client.get(@url + 'largebody') do |str|
       c += 1
     end
-    assert(c > 600)
+    assert(c >= 10)
   end
 
   if RUBY_VERSION > "1.9"
