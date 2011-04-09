@@ -1,7 +1,27 @@
 Ruby HTTP clients comparison for my presentation at Ooedo Ruby Kaigi.
 
+
 = Install all clients as a gem
 
 ruby scripts/install_gem.rb
 
 CAUTION: It installs gems to your user-install dir.
+
+
+= API sample
+
+Sample scripts for API usage are at sample/sample_*
+
+
+= Feature comparison
+
+Test cases at feature/test_* checks features of each HTTP client empl.
+
+
+= Performance suite
+
+Benchmark scripts at perf/* is for bnechmark. Impls I tried.
+ * CRuby 1.9.2-p180
+ * CRuby 1.8.7-p330
+ * JRuby 1.6.0
+ * Rubinius 1.2.3

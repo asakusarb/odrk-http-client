@@ -1,31 +1,17 @@
-require 'net/http'
-require 'open-uri'
-require 'httparty'
-require 'rest-client'
-require 'right_http_connection'
-require 'rufus-verbs'
-require 'simplehttp'
-require 'curb'
-require 'patron'
-require 'typhoeus'
-require 'eventmachine'
-  require 'em/protocols/httpclient2'
-require 'excon'
-require 'httpclient'
-require 'faraday'
-require 'wrest'
+require 'uri'
+require 'benchmark'
 
 url = ARGV.shift or raise "URL must be given"
+block = ARGV.shift
 url = URI.parse(url)
 url_str = url.to_s
 threads = 1
-number = 10
+number = 20
 
 jruby = defined?(JRUBY_VERSION)
 
 targets = [
   :net_http,
-  :net2_http,
   :open_uri,
   :httparty,
   :rest_client,
@@ -41,6 +27,10 @@ targets = [
   :faraday_net_http,
   :wrest
 ].compact
+
+if block
+  targets = [targets[block.to_i - 1]]
+end
 
 # Compare httpclient 50 threads vs EM 50 concurrency.
 # threads = 50; number = 1; targets = [:httpclient]
@@ -69,6 +59,7 @@ null_logger = NullLogger.new
 
 Benchmark.bmbm do |bm|
   if targets.include?(:net_http)
+    require 'net/http'
     bm.report(' 1. net/http') do
       do_threads(threads) {
         c = Net::HTTP.new(url.host, url.port)
@@ -83,6 +74,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:open_uri)
+    require 'open-uri'
     bm.report(' 2. open-uri') do
       do_threads(threads) {
         number.times.map {
@@ -95,6 +87,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:httparty)
+    require 'httparty'
     bm.report(' 3. httparty') do
       do_threads(threads) {
         c = Class.new
@@ -107,6 +100,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:rest_client)
+    require 'rest-client'
     bm.report(' 4. rest-client') do
       do_threads(threads) {
         number.times.map {
@@ -117,6 +111,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:right_http_connection)
+    require 'right_http_connection'
     bm.report(' 5. right_http_connection') do
       do_threads(threads) {
         conn = Rightscale::HttpConnection.new(:logger => null_logger)
@@ -136,6 +131,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:rufus_verbs)
+    require 'rufus-verbs'
     class RufusVerbsClient
       include Rufus::Verbs
       def run(params)
@@ -153,7 +149,10 @@ Benchmark.bmbm do |bm|
     end
   end
 
+require 'simplehttp'
+
   if targets.include?(:curb)
+    require 'curb'
     bm.report(' 7. curb') do
       do_threads(threads) {
         number.times.map {
@@ -164,6 +163,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:typhoeus)
+    require 'typhoeus'
     bm.report(' 8. typhoeus') do
       do_threads(threads) {
         number.times.map {
@@ -174,6 +174,8 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:eventmachine)
+    require 'eventmachine'
+    require 'em/protocols/httpclient2'
     bm.report(' 9. eventmachine/httpclient2') do
       EM.run do
         query = {}
@@ -199,6 +201,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:excon)
+    require 'excon'
     bm.report('10. excon') do
       c = HTTPClient.new
       do_threads(threads) {
@@ -211,6 +214,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:httpclient)
+    require 'httpclient'
     bm.report('11. httpclient') do
       c = HTTPClient.new
       do_threads(threads) {
@@ -222,6 +226,13 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:faraday)
+    require 'faraday'
+    if jruby
+      # Hit 1 time before to avoid autoload concurrency problem.
+      Faraday.new(:url => (url + "/").to_s) { |builder|
+        builder.adapter :net_http
+      }.get(url.path)
+    end
     bm.report('12. faraday(typhoeus)') do
       do_threads(threads) {
         conn = Faraday.new(:url => (url + "/").to_s) { |builder|
@@ -234,14 +245,15 @@ Benchmark.bmbm do |bm|
     end
   end
 
-  if jruby
-    # Hit 1 time before to avoid autoload concurrency problem.
-    Faraday.new(:url => (url + "/").to_s) { |builder|
-      builder.adapter :net_http
-    }.get(url.path)
-  end
 
   if targets.include?(:faraday_net_http)
+    require 'faraday'
+    if jruby
+      # Hit 1 time before to avoid autoload concurrency problem.
+      Faraday.new(:url => (url + "/").to_s) { |builder|
+        builder.adapter :net_http
+      }.get(url.path)
+    end
     bm.report('13. faraday(net/http)') do
       do_threads(threads) {
         conn = Faraday.new(:url => (url + "/").to_s) { |builder|
@@ -255,6 +267,7 @@ Benchmark.bmbm do |bm|
   end
 
   if targets.include?(:wrest)
+    require 'wrest'
     Wrest.use_native!
     Wrest.logger = null_logger
     bm.report('14. wrest(net/http)') do

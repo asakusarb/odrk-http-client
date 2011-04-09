@@ -52,12 +52,6 @@ class TestSimpleHTTP < OdrkHTTPClientTestCase
 
   def test_put
     assert_equal("put", SimpleHttp.new(@url + 'servlet').put)
-    res = SimpleHttp.new(@url + 'servlet').put('1=2&3=4')
-    assert_equal('1=2&3=4', res.header["x-query"])
-    # bytesize
-    res = SimpleHttp.new(@url + 'servlet').put('txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A')
-    assert_equal('txt=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A', res.header["x-query"])
-    assert_equal('15', res.header["x-size"])
   end
 
   def test_delete

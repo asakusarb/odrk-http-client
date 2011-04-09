@@ -44,8 +44,8 @@ class TestHTTParty < OdrkHTTPClientTestCase
   end
 
   def test_gzip_post
-    assert_equal('hello', @client.post(@url + 'compressed', :body => {:enc => 'gzip'}))
-    assert_equal('hello', @client.post(@url + 'compressed', :body => {:enc => 'deflate'}))
+    assert_equal('hello', @client.post(@url + 'compressed', :body => 'enc=gzip'}))
+    assert_equal('hello', @client.post(@url + 'compressed', :body => 'enc=deflate'}))
   end
 
   def test_put
