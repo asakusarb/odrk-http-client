@@ -1,5 +1,7 @@
 Ruby HTTP clients comparison for my presentation at Ooedo Ruby Kaigi.
 
+Summary presentation is at http://j.mp/OdrkHTTPClient
+
 
 = Install all clients as a gem
 
@@ -16,6 +18,8 @@ Sample scripts for API usage are at sample/sample_*
 = Feature comparison
 
 Test cases at feature/test_* checks features of each HTTP client empl.
+
+You can see the latest result at http://j.mp/RubyHTTPClients
 
 
 = Performance suite
