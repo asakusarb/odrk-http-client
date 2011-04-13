@@ -71,6 +71,10 @@ class TestFaraday < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_cookies
     flunk('Cookie not supported')
     res = @client.get(@url + 'cookies', :header => {'Cookie' => 'foo=0; bar=1'})

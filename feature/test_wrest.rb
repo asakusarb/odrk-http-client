@@ -57,6 +57,10 @@ class TestWrest < OdrkHTTPClientTestCase
     assert_equal("delete", (@url + 'servlet').to_uri.delete.body)
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_cookies
     flunk('Cookie is not supported')
   end

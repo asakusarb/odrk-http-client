@@ -59,6 +59,12 @@ class TestTyphoeus < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    res = Typhoeus::Request.run(@url + 'servlet', :method => :custom, :body => 'custom?')
+    assert_equal('custom?', res.body)
+    assert_equal('1=2&3=4', res.headers["X-Query"])
+  end
+
   def test_cookies
     res = @client.get(@url + 'cookies', :headers => {'Cookie' => 'foo=0; bar=1'})
     # !! It returns 'Set-Cookie'. 2 or more response headers causes strange behavior?

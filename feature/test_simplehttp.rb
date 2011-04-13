@@ -58,6 +58,10 @@ class TestSimpleHTTP < OdrkHTTPClientTestCase
     assert_equal("delete", SimpleHttp.new(@url + 'servlet').delete)
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_cookies
     flunk 'not supported (do it by yourself)'
   end

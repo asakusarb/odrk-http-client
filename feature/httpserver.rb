@@ -225,6 +225,11 @@ private
       res["x-query"] = query_response(req)
     end
 
+    def do_CUSTOM(req, res)
+      res.body = req.body
+      res["x-query"] = query_response(req)
+    end
+
   private
 
     def query_response(req)

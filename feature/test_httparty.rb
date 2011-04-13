@@ -62,6 +62,10 @@ class TestHTTParty < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    flunk 'custom method not directly supported'
+  end
+
   def test_cookies
     res = @client.get(@url + 'cookies', :headers => {'Cookie' => 'foo=0; bar=1'})
     # !! It's a String so you need to parse by yourself

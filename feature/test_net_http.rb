@@ -67,6 +67,10 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    flunk 'custom method not directly supported'
+  end
+
   def test_post_multipart
     File.open(__FILE__) do |file|
       req = Net::HTTP::Post.new(@url + 'servlet')

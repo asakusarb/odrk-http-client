@@ -69,6 +69,10 @@ class TestCurb < OdrkHTTPClientTestCase
     assert_equal("delete", Curl::Easy.http_delete(@url + 'servlet').body_str)
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_cookies
     easy = Curl::Easy.new(@url + 'cookies')
     easy.enable_cookies = true

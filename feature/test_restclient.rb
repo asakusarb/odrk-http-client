@@ -60,6 +60,10 @@ class TestRestClient < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet'))
   end
 
+  def test_custom_method
+    flunk 'custom method not directly supported'
+  end
+
   def test_cookies
     res = @client.get(@url + 'cookies', :cookies => {:foo => '0', :bar => '1'})
     # It returns 3. It looks fail to parse expiry date. 'Expires' => 'Sun'

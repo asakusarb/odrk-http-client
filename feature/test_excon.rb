@@ -62,6 +62,12 @@ class TestExcon < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    res = Excon.new(@url + 'servlet?1=2&3=4').request(:method => :custom, :body => 'custom?')
+    assert_equal('custom?', res.body)
+    assert_equal('1=2&3=4', res.headers["X-Query"])
+  end
+
   def test_cookies
     raise 'Cookie is not supported'
   end

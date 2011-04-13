@@ -69,6 +69,10 @@ class TestPatron < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_cookies
     @client.handle_cookies
     res = @client.get(@url + 'cookies', 'Cookie' => 'foo=0; bar=1 ')

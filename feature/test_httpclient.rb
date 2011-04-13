@@ -64,6 +64,12 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     assert_equal("delete", @client.delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    res = @client.request(:custom, @url + 'servlet', :query => {1=>2, 3=>4}, :body => 'custom?')
+    assert_equal('custom?', res.body)
+    assert_equal('1=2&3=4', res.headers["X-Query"])
+  end
+
   def test_cookies
     res = @client.get(@url + 'cookies', :header => {'Cookie' => 'foo=0; bar=1'})
     assert_equal(2, @client.cookies.size)

@@ -74,6 +74,10 @@ class TestRightHttpConnection < OdrkHTTPClientTestCase
     flunk 'no direct support for delete'
   end
 
+  def test_custom_method
+    flunk 'custom method not directly supported'
+  end
+
   def test_cookies
     flunk 'not supported'
   end

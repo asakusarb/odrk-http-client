@@ -62,6 +62,10 @@ class TestRufusVerbs < OdrkHTTPClientTestCase
     assert_equal("delete", delete(@url + 'servlet').body)
   end
 
+  def test_custom_method
+    flunk 'custom method not directly supported'
+  end
+
   def test_cookies
     ep = EndPoint.new(:cookies => true)
     # there's no direct way to set Cookie.

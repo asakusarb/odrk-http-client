@@ -41,6 +41,10 @@ class TestOpenURI < OdrkHTTPClientTestCase
     raise 'non-GET methods are not supported'
   end
 
+  def test_custom_method
+    flunk 'custom method not supported'
+  end
+
   def test_basic_auth
     body = open(@url + 'basic_auth', :http_basic_authentication => ['admin', 'admin']) { |f| f.read }
     assert_equal('basic_auth OK', body)
