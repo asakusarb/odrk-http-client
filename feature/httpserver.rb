@@ -193,7 +193,9 @@ private
     end
 
     def do_PUT(req, res)
-      req.continue
+      if req.respond_to?(:continue)
+        req.continue
+      end
       res["x-query"] = body_response(req)
       param = WEBrick::HTTPUtils.parse_query(req.body) || {}
       res["x-size"] = (param['txt'] || '').size
