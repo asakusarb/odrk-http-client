@@ -17,7 +17,7 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
 
   def test_ssl
     setup_sslserver
-    ssl_url = "https://localhost:#{$ssl_port}/"
+    ssl_url = "https://#{$host}:#{$ssl_port}/"
     EM.run do
       req = EventMachine::HttpRequest.new(ssl_url + 'hello').get
       req.callback do
@@ -32,6 +32,7 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
   end
 
   def test_ssl_ca
+    # The parameter :cert_chain_file of EventMachine is the certificate chain sent to the server, which is not related to verification. SSL client of EventMachine does not support SSL verification (just fail for :verify_peer => true)
     flunk('SSL configuration not supported')
   end
 
@@ -39,7 +40,8 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
     setup_sslserver
     ssl_url = "https://127.0.0.1:#{$ssl_port}/"
     EM.run do
-      req = EventMachine::HttpRequest.new(ssl_url + 'hello').get
+      opt = {:tls => {:verify_peer => true}}
+      req = EventMachine::HttpRequest.new(ssl_url + 'hello', opt).get
       req.callback do
         assert(false, 'SSL should fail')
         EM.stop
@@ -113,6 +115,8 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
   end
 
   def test_post_multipart
+    # !! How can I run this? https://gist.github.com/778639
+    # Where're the definitions for MultipartBody, Part and Multipart?
     File.open(__FILE__) do |file|
       req = request {
         EventMachine::HttpRequest.new(@url + 'servlet').post(:body => file)
@@ -188,7 +192,16 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
   end
 
   def test_streaming_upload
-    flunk 'streaming upload not supported'
+    file = Tempfile.new(__FILE__)
+    file << "*" * 4096 * 100
+    file.close
+    req = request {
+      EventMachine::HttpRequest.new(@url + 'chunked').post :file => file.path
+    }
+    assert(req.response_header['X_COUNT'].to_i >= 7)
+    if filename = req.response_header['X_TMPFILENAME']
+      File.unlink(filename)
+    end
   end
 
   def test_streaming_download
