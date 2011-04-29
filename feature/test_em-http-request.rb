@@ -182,12 +182,44 @@ class TestEmHttpRequest < OdrkHTTPClientTestCase
       req1.errback { flunk }
     end
     assert_equal(5, body.size)
-    assert_equal(1, body.unique.size)
+    assert_equal(1, body.uniq.size)
     assert_equal('12345', body[0])
     server.close
     # chunked
     server = HTTPServer::KeepAliveServer.new($host)
-    flunk('TBD')
+    body = []
+    EM.run do
+      conn = EventMachine::HttpRequest.new(server.url + 'chunked')
+      req1 = conn.get(:keepalive => true)
+      req1.callback {
+        body << req1.response
+        req2 = conn.get(:keepalive => true)
+        req2.callback {
+          body << req2.response
+          req3 = conn.get(:keepalive => true)
+          req3.callback {
+            body << req3.response
+            req4 = conn.get(:keepalive => true)
+            req4.callback {
+              body << req4.response
+              req5 = conn.get(:keepalive => true)
+              req5.callback {
+                body << req5.response
+                EM.stop
+              }
+              req5.errback { flunk }
+            }
+            req4.errback { flunk }
+          }
+          req3.errback { flunk }
+        }
+        req2.errback { flunk }
+      }
+      req1.errback { flunk }
+    end
+    assert_equal(5, body.size)
+    assert_equal(1, body.uniq.size)
+    assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', body[0])
     server.close
   end
 

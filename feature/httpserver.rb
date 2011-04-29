@@ -257,8 +257,10 @@ private
     def initialize(host)
       @server = TCPServer.open(host, 0)
       @server_thread = Thread.new {
-        sock = @server.accept
-        create_keepalive_thread(sock)
+        while true
+          sock = @server.accept
+          create_keepalive_thread(sock)
+        end
       }
       @url = "http://#{host}:#{@server.addr[1]}/"
     end
@@ -269,14 +271,14 @@ private
 
     def close
       @server.close
-      @server_thread.join
+      @server_thread.raise
     end
 
   private
 
     def create_keepalive_thread(sock)
       Thread.new {
-        5.times do
+        3.times do
           req = sock.gets
           while line = sock.gets
             break if line.chomp.empty?
