@@ -90,7 +90,15 @@ class TestFaraday < OdrkHTTPClientTestCase
   def test_post_multipart
     url = URI.parse($url)
     @client = Faraday.new(:url => (url + "/").to_s) { |builder|
+      builder.request :multipart
       builder.adapter :net_http
+    }
+    res = @client.post(@url + 'servlet', :upload => Faraday::UploadIO.new(__FILE__, 'text/plain'))
+    assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
+    #
+    @client = Faraday.new(:url => (url + "/").to_s) { |builder|
+      builder.request :multipart
+      builder.adapter :typhoeus
     }
     res = @client.post(@url + 'servlet', :upload => Faraday::UploadIO.new(__FILE__, 'text/plain'))
     assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
