@@ -149,8 +149,6 @@ Benchmark.bmbm do |bm|
     end
   end
 
-require 'simplehttp'
-
   if targets.include?(:curb)
     require 'curb'
     bm.report(' 7. curb') do
