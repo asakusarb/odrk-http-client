@@ -201,13 +201,12 @@ Benchmark.bmbm do |bm|
   if targets.include?(:excon)
     require 'excon'
     bm.report('10. excon') do
-      c = HTTPClient.new
+      c = Excon.new(url_str)
       do_threads(threads) {
         number.times.map {
-          Excon.get(url_str).body.bytesize
+          c.request(:method => :get).body.bytesize
         }
       }
-      c.reset_all
     end
   end
 
