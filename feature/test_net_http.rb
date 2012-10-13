@@ -6,9 +6,59 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 class TestNetHTTP < OdrkHTTPClientTestCase
   def setup
     super
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Net::HTTP.new(url.host, url.port)
     @client.set_debug_output(STDERR) if $DEBUG
+  end
+
+  def test_proxy
+    setup_proxyserver
+    url = URI.parse(@url)
+    proxy = URI.parse(@proxy_url)
+    client = Net::HTTP::Proxy(proxy.host, proxy.port).new(url.host, url.port)
+    assert_equal('hello', client.get(url.path + 'hello').body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
+
+  def test_proxy_auth
+    setup_proxyserver(true)
+    url = URI.parse(@url)
+    proxy = URI.parse(@proxy_url)
+    client = Net::HTTP::Proxy(proxy.host, proxy.port, 'admin', 'admin').new(url.host, url.port)
+    assert_equal('hello', client.get(url.path + 'hello').body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    url = URI.parse(server.url)
+    c = Net::HTTP.new(url.host, url.port)
+    c.start
+    begin
+      5.times do
+        assert_equal('12345', c.get(url.path).body)
+      end
+    ensure
+      c.finish
+      server.close
+    end
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    url = URI.parse(server.url)
+    c = Net::HTTP.new(url.host, url.port)
+    c.start
+    begin
+      5.times do
+        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', c.get(url.path + 'chunked').body)
+      end
+    ensure
+      c.finish
+      server.close
+    end
+  end
+
+  def test_pipelining
+    flunk 'not supported'
   end
 
   def test_ssl
@@ -43,14 +93,23 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     end
   end
 
-  def test_gzip_get
-    assert_equal('hello', @client.get(@url + 'compressed?enc=gzip').body)
-    assert_equal('hello', @client.get(@url + 'compressed?enc=deflate').body)
+  def test_basic_auth
+    req = Net::HTTP::Get.new(@url + 'basic_auth')
+    req.basic_auth('admin', 'admin')
+    assert_equal('basic_auth OK', @client.request(req).body)
   end
 
-  def test_gzip_post
-    assert_equal('hello', @client.post(@url + 'compressed', 'enc=gzip').body)
-    assert_equal('hello', @client.post(@url + 'compressed', 'enc=deflate').body)
+  def test_digest_auth
+    flunk 'digest auth not supported'
+    flunk 'digest-sess auth not supported'
+  end
+
+  def test_get
+    assert_equal('hello', @client.get(@url + 'hello').body)
+  end
+
+  def test_post
+    assert_equal('hello', @client.post(@url + 'hello', 'body').body)
   end
 
   def test_put
@@ -71,25 +130,12 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     flunk 'custom method not directly supported'
   end
 
-  def test_post_multipart
-    File.open(__FILE__) do |file|
-      req = Net::HTTP::Post.new(@url + 'servlet')
-      req.set_form({'upload' => file}, 'multipart/form-data')
-      res = @client.request(req)
-      content = res.body
-      assert_match(/FIND_TAG_IN_THIS_FILE/, content)
-    end
+  def test_response_header
+    assert_match(/WEBrick/, @client.get(@url + 'hello').header['Server'])
   end
 
-  def test_basic_auth
-    req = Net::HTTP::Get.new(@url + 'basic_auth')
-    req.basic_auth('admin', 'admin')
-    assert_equal('basic_auth OK', @client.request(req).body)
-  end
-
-  def test_digest_auth
-    flunk 'digest auth not supported'
-    flunk 'digest-sess auth not supported'
+  def test_cookies
+    flunk 'not supported'
   end
 
   def test_redirect
@@ -102,31 +148,13 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     end
   end
 
-  def test_keepalive
-    server = HTTPServer::KeepAliveServer.new($host)
-    url = URI.parse(server.url)
-    c = Net::HTTP.new(url.host, url.port)
-    c.start
-    begin
-      5.times do
-        assert_equal('12345', c.get(url.path).body)
-      end
-    ensure
-      c.finish
-      server.close
-    end
-    # chunked
-    server = HTTPServer::KeepAliveServer.new($host)
-    url = URI.parse(server.url)
-    c = Net::HTTP.new(url.host, url.port)
-    c.start
-    begin
-      5.times do
-        assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', c.get(url.path + 'chunked').body)
-      end
-    ensure
-      c.finish
-      server.close
+  def test_post_multipart
+    File.open(__FILE__) do |file|
+      req = Net::HTTP::Post.new(@url + 'servlet')
+      req.set_form({'upload' => file}, 'multipart/form-data')
+      res = @client.request(req)
+      content = res.body
+      assert_match(/FIND_TAG_IN_THIS_FILE/, content)
     end
   end
 
@@ -154,11 +182,19 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     assert(c > 600)
   end
 
-  if RUBY_VERSION > "1.9"
-    def test_charset
-      body = @client.get(@url + 'charset').body
-      assert_equal(Encoding::EUC_JP, body.encoding)
-      assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
-    end
+  def test_gzip_get
+    assert_equal('hello', @client.get(@url + 'compressed?enc=gzip').body)
+    assert_equal('hello', @client.get(@url + 'compressed?enc=deflate').body)
+  end
+
+  def test_gzip_post
+    assert_equal('hello', @client.post(@url + 'compressed', 'enc=gzip', 'Accept-Encoding' => 'gzip').body)
+    assert_equal('hello', @client.post(@url + 'compressed', 'enc=deflate', 'Accept-Encoding' => 'deflate').body)
+  end
+
+  def test_charset
+    body = @client.get(@url + 'charset').body
+    assert_equal(Encoding::EUC_JP, body.encoding)
+    assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
   end
 end

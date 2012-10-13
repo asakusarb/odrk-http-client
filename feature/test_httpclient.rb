@@ -4,10 +4,46 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 
 
 class TestHTTPClient < OdrkHTTPClientTestCase
+  # Make localhost a proxy target
+  HTTPClient::NO_PROXY_HOSTS.clear
+
   def setup
     super
     @client = HTTPClient.new
     @client.debug_dev = STDERR if $DEBUG
+  end
+
+  def test_proxy
+    setup_proxyserver
+    client = HTTPClient.new(:proxy => @proxy_url)
+    assert_equal('hello', client.get(@url + 'hello').body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
+
+  def test_proxy_auth
+    setup_proxyserver(true)
+    client = HTTPClient.new(:proxy => @proxy_url)
+    client.set_proxy_auth('admin', 'admin')
+    assert_equal('hello', client.get(@url + 'hello').body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
+
+  def test_keepalive
+    server = HTTPServer::KeepAliveServer.new($host)
+    5.times do
+      assert_equal('12345', @client.get(server.url).body)
+    end
+    server.close
+    # chunked
+    server = HTTPServer::KeepAliveServer.new($host)
+    5.times do
+      assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
+    end
+    server.close
+  end
+
+  def test_pipelining
+    flunk 'not supported'
   end
 
   def test_ssl
@@ -36,18 +72,25 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     end
   end
 
-  def test_gzip_get
-    @client.transparent_gzip_decompression = true
-    assert_equal('hello', @client.get(@url + 'compressed?enc=gzip').body)
-    assert_equal('hello', @client.get(@url + 'compressed?enc=deflate').body)
-    @client.transparent_gzip_decompression = false
+  def test_basic_auth
+    @client.set_auth(@url, 'admin', 'admin')
+    assert_equal('basic_auth OK', @client.get(@url + 'basic_auth').body)
   end
 
-  def test_gzip_post
-    @client.transparent_gzip_decompression = true
-    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'gzip').body)
-    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'deflate').body)
-    @client.transparent_gzip_decompression = false
+  def test_digest_auth
+    @client.set_auth(@url, 'admin', 'admin')
+    assert_equal('digest_auth OK', @client.get(@url + 'digest_auth').body)
+    # digest_sess
+    @client.set_auth(@url, 'admin', 'admin')
+    assert_equal('digest_sess_auth OK', @client.get(@url + 'digest_sess_auth').body)
+  end
+
+  def test_get
+    assert_equal('hello', @client.get(@url + 'hello').body)
+  end
+
+  def test_post
+    assert_equal('hello', @client.post(@url + 'hello', 'body').body)
   end
 
   def test_put
@@ -70,6 +113,10 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     assert_equal('1=2&3=4', res.headers["X-Query"])
   end
 
+  def test_response_header
+    assert_match(/WEBrick/, @client.get(@url + 'hello').headers['Server'])
+  end
+
   def test_cookies
     res = @client.get(@url + 'cookies', :header => {'Cookie' => 'foo=0; bar=1'})
     assert_equal(2, @client.cookies.size)
@@ -81,49 +128,22 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     assert_equal('7', @client.cookies.find { |c| c.name == 'bar' }.value)
   end
 
-  def test_post_multipart
-    File.open(__FILE__) do |file|
-      res = @client.post(@url + 'servlet', :upload => file)
-      assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
-    end
-  end
-
-  def test_basic_auth
-    @client.set_auth(@url, 'admin', 'admin')
-    assert_equal('basic_auth OK', @client.get(@url + 'basic_auth').body)
-  end
-
-  def test_digest_auth
-    @client.set_auth(@url, 'admin', 'admin')
-    assert_equal('digest_auth OK', @client.get(@url + 'digest_auth').body)
-    # digest_sess
-    @client.set_auth(@url, 'admin', 'admin')
-    assert_equal('digest_sess_auth OK', @client.get(@url + 'digest_sess_auth').body)
-  end
-
   def test_redirect
-    assert_equal('hello', @client.get_content(@url + 'redirect3'))
+    assert_equal('hello', @client.get(@url + 'redirect3', :follow_redirect => true).body)
   end
 
   def test_redirect_loop_detection
     assert_raise(HTTPClient::BadResponseError) do
       @client.protocol_retry_count = 10
-      @client.get_content(@url + 'redirect_self')
+      @client.get(@url + 'redirect_self', :follow_redirect => true)
     end
   end
 
-  def test_keepalive
-    server = HTTPServer::KeepAliveServer.new($host)
-    5.times do
-      assert_equal('12345', @client.get(server.url).body)
+  def test_post_multipart
+    File.open(__FILE__) do |file|
+      res = @client.post(@url + 'servlet', :upload => file)
+      assert_match(/FIND_TAG_IN_THIS_FILE/, res.body)
     end
-    server.close
-    # chunked
-    server = HTTPServer::KeepAliveServer.new($host)
-    5.times do
-      assert_equal('abcdefghijklmnopqrstuvwxyz1234567890abcdef', @client.get(server.url + 'chunked').body)
-    end
-    server.close
   end
 
   def test_streaming_upload
@@ -132,7 +152,7 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     file.close
     file.open
     res = @client.post(@url + 'chunked', file)
-    assert(res.header['x-count'][0].to_i >= 100)
+    assert(res.header['x-count'][0].to_i >= 7)
     if filename = res.header['x-tmpfilename'][0]
       File.unlink(filename)
     end
@@ -146,11 +166,23 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     assert(c > 600)
   end
 
-  if RUBY_VERSION > "1.9"
-    def test_charset
-      body = @client.get(@url + 'charset').body
-      assert_equal(Encoding::EUC_JP, body.encoding)
-      assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
-    end
+  def test_gzip_get
+    @client.transparent_gzip_decompression = true
+    assert_equal('hello', @client.get(@url + 'compressed?enc=gzip').body)
+    assert_equal('hello', @client.get(@url + 'compressed?enc=deflate').body)
+    @client.transparent_gzip_decompression = false
+  end
+
+  def test_gzip_post
+    @client.transparent_gzip_decompression = true
+    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'gzip').body)
+    assert_equal('hello', @client.post(@url + 'compressed', :enc => 'deflate').body)
+    @client.transparent_gzip_decompression = false
+  end
+
+  def test_charset
+    body = @client.get(@url + 'charset').body
+    assert_equal(Encoding::EUC_JP, body.encoding)
+    assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
   end
 end
