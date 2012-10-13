@@ -16,6 +16,8 @@ class OdrkHTTPClientTestCase < Test::Unit::TestCase
     @ssl_server = nil
     @proxy_server = nil
     @url = "http://#{$host}:#{$port}/"
+    @ssl_url = "https://localhost:#{$ssl_port}/"
+    @ssl_fake_url = "https://127.0.0.1:#{$ssl_port}/"
     @proxy_url = "http://#{$host}:#{$proxy_port}/"
   end
 
