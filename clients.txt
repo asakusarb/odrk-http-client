@@ -1,18 +1,23 @@
-module name,            gem, 1.9, repo, sync, parallel, async, thread model, error handling, logging, wiredump dubug, proxy, proxy auth, SSL, trust anchor, SNI, gzip, put/delete, cookie, multipart, digest auth, NTLM auth, encoding, redirect, keep-alive, streaming
-net/http,               no,  yes
-open-uri,               no,  yes
-httparty,               yes, yes, https://github.com/jnunemaker/httparty  
-rest-client,            yes, yes, https://github.com/archiloque/rest-client       
-right_http_connection,  yes, yes, https://github.com/rightscale/right_http_connection
-rufus-verbs,            yes, yes, https://github.com/jmettraux/rufus-verbs        
-simplehttp,             yes, yes, https://github.com/a2800276/simplehttp
-curb,                   yes, yes, https://github.com/taf2/curb/
-patron,                 yes, yes, https://github.com/toland/patron        
-typhoeus,               yes, yes, https://github.com/dbalatero/typhoeus   
-eventmachine,           yes, yes, https://github.com/eventmachine/eventmachine    
-excon,                  yes, yes, https://github.com/geemus/excon 
-httpclient,             yes, yes, https://github.com/nahi/httpclient
-faraday,                yes, yes, https://github.com/technoweenie/faraday 
-wrest,                  yes, yes, https://github.com/kaiwren/wrest
-curl-multi,             yes, no,  https://github.com/kball/curl_multi.rb  
-rfuzz,                  yes, no,  http://rubyforge.org/scm/?group_id=1944
+module name,            gem
+net/http,               no, http://svn.ruby-lang.org/cgi-bin/viewvc.cgi/trunk/lib/net/http.rb
+open-uri,               no, http://svn.ruby-lang.org/cgi-bin/viewvc.cgi/trunk/lib/open-uri.rb
+httparty,               yes, https://github.com/jnunemaker/httparty  
+rest-client,            yes, https://github.com/archiloque/rest-client       
+right_http_connection,  yes, https://github.com/rightscale/right_http_connection
+rufus-verbs,            yes, https://github.com/jmettraux/rufus-verbs        
+curb,                   yes, https://github.com/taf2/curb/
+patron,                 yes, https://github.com/toland/patron        
+typhoeus,               yes, https://github.com/dbalatero/typhoeus   
+excon,                  yes, https://github.com/geemus/excon 
+httpclient,             yes, https://github.com/nahi/httpclient
+faraday,                yes, https://github.com/technoweenie/faraday 
+wrest,                  yes, https://github.com/kaiwren/wrest
+httpi,                  yes, https://github.com/savonrb/httpi.git
+restfulie,              yes, https://github.com/caelum/restfulie
+weary,                  yes, https://github.com/mwunsch/weary
+#simplehttp,             yes, https://github.com/a2800276/simplehttp
+#eventmachine,           yes, https://github.com/eventmachine/eventmachine    
+#rfuzz,                  yes, http://rubyforge.org/scm/?group_id=1944
+#http,                   yes, https://github.com/tarcieri/http
+#http_request.rb,        yes, https://github.com/xianhuazhou/http_request.rb
+#nestful,                yes, https://github.com/maccman/nestful
