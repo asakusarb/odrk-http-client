@@ -9,7 +9,7 @@ class TestRightHttpConnection < OdrkHTTPClientTestCase
   def setup
     super
     @client = Rightscale::HttpConnection.new
-    @url = URI.parse($url)
+    @url = URI.parse(@url)
   end
 
   def get(url, path, opt = {})

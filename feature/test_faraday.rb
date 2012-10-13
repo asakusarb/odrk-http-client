@@ -6,7 +6,7 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 class TestFaraday < OdrkHTTPClientTestCase
   def setup
     super
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Faraday.new(:url => (url + "/").to_s) { |builder|
       builder.adapter :typhoeus
     }
@@ -14,7 +14,7 @@ class TestFaraday < OdrkHTTPClientTestCase
   end
 
   def setup_nethttp_client(opt = {})
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Faraday.new(opt.merge(:url => (url + "/").to_s)) { |builder|
       builder.adapter :net_http
     }
@@ -88,7 +88,7 @@ class TestFaraday < OdrkHTTPClientTestCase
   end
 
   def test_post_multipart
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Faraday.new(:url => (url + "/").to_s) { |builder|
       builder.request :multipart
       builder.adapter :net_http

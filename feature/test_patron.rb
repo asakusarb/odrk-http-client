@@ -6,7 +6,7 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 class TestPatron < OdrkHTTPClientTestCase
   def setup
     super
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Patron::Session.new
     @client.base_url = (url + "/").to_s
     @url = url.path.sub(/^\//, '')

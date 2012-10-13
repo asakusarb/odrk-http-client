@@ -9,7 +9,7 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 class TestNet2HTTP < OdrkHTTPClientTestCase
   def setup
     super
-    url = URI.parse($url)
+    url = URI.parse(@url)
     @client = Net2::HTTP.new(url.host, url.port)
     @client.set_debug_output(STDERR) if $DEBUG
   end
