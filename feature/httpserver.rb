@@ -168,7 +168,7 @@ private
       res.body = 'あいうえお'.encode("euc-jp")
       res['Content-Type'] = 'text/plain; charset=euc-jp'
     else
-      res.body = 'this endpoing for 1.9 or later'
+      res.body = 'this endpoint is for 1.9 or later'
     end
   end
 
@@ -189,6 +189,7 @@ private
 
     def do_POST(req, res)
       res.body = 'post,' + req.body.to_s
+      res["Content-Type"] = 'text/plain; charset=UTF-8'
       res["x-query"] = body_response(req)
     end
 
