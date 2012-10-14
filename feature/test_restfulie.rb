@@ -57,10 +57,7 @@ class TestRestfulie < OdrkHTTPClientTestCase
   end
 
   def test_108_basic_auth
-    url = URI.parse(@url.to_s)
-    url.user = 'admin'
-    url.password = 'admin'
-    assert_equal('basic_auth OK', @client.at(url.to_s + 'basic_auth').get!.body)
+    assert_equal('basic_auth OK', @client.at(url_with_auth(@url, 'admin', 'admin') + 'basic_auth').get!.body)
   end
 
   def test_109_digest_auth

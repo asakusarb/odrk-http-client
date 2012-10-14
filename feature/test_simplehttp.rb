@@ -6,9 +6,8 @@ require File.expand_path('./test_setting', File.dirname(__FILE__))
 class TestSimpleHTTP < OdrkHTTPClientTestCase
   def test_ssl
     setup_sslserver
-    ssl_url = "https://localhost:#{$ssl_port}/"
     assert_raise(OpenSSL::SSL::SSLError) do
-      SimpleHttp.new(ssl_url + 'hello').get
+      SimpleHttp.new(@ssl_url + 'hello').get
     end
   end
 
@@ -18,8 +17,7 @@ class TestSimpleHTTP < OdrkHTTPClientTestCase
     setup_sslserver
     ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
     begin
-      ssl_url = "https://localhost:#{$ssl_port}/"
-      assert_equal('hello ssl', SimpleHttp.new(ssl_url + 'hello').get)
+      assert_equal('hello ssl', SimpleHttp.new(@ssl_url + 'hello').get)
     ensure
       ENV.delete('SSL_CERT_DIR')
     end
@@ -31,9 +29,8 @@ class TestSimpleHTTP < OdrkHTTPClientTestCase
     setup_sslserver
     ENV['SSL_CERT_DIR'] = File.expand_path('./fixture/', File.dirname(__FILE__))
     begin
-      ssl_url = "https://127.0.0.1:#{$ssl_port}/"
       assert_raise(OpenSSL::SSL::SSLError) do
-        SimpleHttp.new(ssl_url + 'hello').get
+        SimpleHttp.new(@ssl_fake_url + 'hello').get
       end
     ensure
       ENV.delete('SSL_CERT_DIR')

@@ -9,24 +9,34 @@ class TestTyphoeus < OdrkHTTPClientTestCase
     @client = Typhoeus::Request
   end
 
+  def test_101_proxy
+    setup_proxyserver
+    client = Typhoeus::Request.new(@url + 'hello', :method => :get, :proxy => @proxy_url)
+    assert_equal('hello', client.run.body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
+
+  def test_102_proxy_auth
+    setup_proxyserver(true)
+    @client.proxy = url_with_auth(@proxy_url, 'admin', 'admin')
+    assert_equal('hello', @client.get(@url + 'hello').body)
+    assert_match(/accept/, @proxy_server.log, 'not via proxy')
+  end
   def test_ssl
     setup_sslserver
-    ssl_url = "https://localhost:#{$ssl_port}/"
-    assert_equal("Peer certificate cannot be authenticated with known CA certificates", @client.get(ssl_url + 'hello').curl_error_message)
+    assert_equal("Peer certificate cannot be authenticated with known CA certificates", @client.get(@ssl_url + 'hello').curl_error_message)
   end
 
   def test_ssl_ca
     setup_sslserver
-    ssl_url = "https://localhost:#{$ssl_port}/"
     ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
-    assert_equal('hello ssl', @client.get(ssl_url + 'hello', :ssl_cacert => ca_file).body)
+    assert_equal('hello ssl', @client.get(@ssl_url + 'hello', :ssl_cacert => ca_file).body)
   end
 
   def test_ssl_hostname
     setup_sslserver
-    ssl_url = "https://127.0.0.1:#{$ssl_port}/"
     ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
-    assert_equal("SSL peer certificate or SSH remote key was not OK", @client.get(ssl_url + 'hello', :ssl_cacert => ca_file).curl_error_message)
+    assert_equal("SSL peer certificate or SSH remote key was not OK", @client.get(@ssl_fake_url + 'hello', :ssl_cacert => ca_file).curl_error_message)
   end
 
   def test_gzip_get

@@ -258,7 +258,8 @@ private
     def initialize(host)
       @server = TCPServer.open(host, 0)
       @server_thread = Thread.new {
-        while true
+        # Client connects 5 times, so at least 5 - 4 == 1 connection must be reused
+        4.times do
           sock = @server.accept
           create_keepalive_thread(sock)
         end

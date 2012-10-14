@@ -24,10 +24,7 @@ class TestRestClient < OdrkHTTPClientTestCase
 
   def test_102_proxy_auth
     setup_proxyserver(true)
-    proxy = URI.parse(@proxy_url)
-    proxy.user = 'admin'
-    proxy.password = 'admin'
-    @client.proxy = proxy.to_s
+    @client.proxy = url_with_auth(@proxy_url, 'admin', 'admin')
     assert_equal('hello', @client.get(@url + 'hello').body)
     assert_match(/accept/, @proxy_server.log, 'not via proxy')
   end

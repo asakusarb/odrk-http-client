@@ -34,5 +34,12 @@ class OdrkHTTPClientTestCase < Test::Unit::TestCase
   def setup_proxyserver(auth = false)
     @proxy_server = ProxyServer.new('localhost', $proxy_port, auth)
   end
+
+  def url_with_auth(url, user, password)
+    url = URI.parse(url.to_s)
+    url.user = user
+    url.password = password
+    url.to_s
+  end
 end
 
