@@ -194,6 +194,7 @@ private
     end
 
     def do_PUT(req, res)
+      p req
       if req.respond_to?(:continue)
         req.continue
       end
