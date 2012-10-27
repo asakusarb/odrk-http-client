@@ -5,8 +5,8 @@ url = ARGV.shift or raise "URL must be given"
 block = ARGV.shift
 url = URI.parse(url)
 url_str = url.to_s
-threads = 1
-number = 20
+threads = 10
+number = 5
 
 jruby = defined?(JRUBY_VERSION)
 
@@ -14,17 +14,19 @@ targets = [
   :net_http,
   :open_uri,
   :httparty,
+  :mechanize,
   :rest_client,
-  :right_http_connection,
+  :restfulie,
   :rufus_verbs,
-  !jruby ? :curb : nil,
-  !jruby ? :typhoeus : nil,
-  # Java version looks to have threading issue
-  (RUBY_VERSION > "1.9" or (jruby and threads == 1)) ? :eventmachine : nil,
+  :em_http_request,
   :excon,
   :httpclient,
-  !jruby ? :faraday : nil,
-  :faraday_net_http,
+  !jruby ? :curb : nil,
+  !jruby ? :curb_multi : nil,
+  !jruby ? :patron : nil,
+  :faraday,
+  :httpi,
+  :weary,
   :wrest
 ].compact
 
@@ -42,7 +44,7 @@ def do_threads(number)
   else
     number.times.map {
       Thread.new {
-        results << yield
+        yield
       }
     }.each(&:join)
   end
@@ -99,9 +101,21 @@ Benchmark.bmbm do |bm|
     end
   end
 
+  if targets.include?(:mechanize)
+    require 'mechanize'
+    bm.report(' 4. mechanize') do
+      do_threads(threads) {
+        c = Mechanize.new
+        number.times.map {
+          c.get(url).content.bytesize
+        }
+      }
+    end
+  end
+
   if targets.include?(:rest_client)
     require 'rest-client'
-    bm.report(' 4. rest-client') do
+    bm.report(' 5. rest-client') do
       do_threads(threads) {
         number.times.map {
           RestClient.get(url_str).bytesize
@@ -110,22 +124,16 @@ Benchmark.bmbm do |bm|
     end
   end
 
-  if targets.include?(:right_http_connection)
-    require 'right_http_connection'
-    bm.report(' 5. right_http_connection') do
+  if targets.include?(:restfulie)
+    require 'restfulie'
+    Restfulie::Common::Logger.logger.level = Logger::UNKNOWN # disable
+    # To avoid autoload MT-unsafe issue
+    Restfulie.at(url).get!
+    bm.report(' 6. restfulie') do
       do_threads(threads) {
-        conn = Rightscale::HttpConnection.new(:logger => null_logger)
-        result = number.times.map {
-          req = {
-            :request => Net::HTTP::Get.new(url.path),
-            :server => url.host,
-            :port => url.port,
-            :protocol => url.scheme
-          }
-          conn.request(req).body.bytesize
+        number.times.map {
+          Restfulie.at(url).get!.body.bytesize
         }
-        conn.finish
-        result
       }
     end
   end
@@ -139,7 +147,7 @@ Benchmark.bmbm do |bm|
       end
     end
 
-    bm.report(' 6. rufus-verbs') do
+    bm.report(' 7. rufus-verbs') do
       do_threads(threads) {
         c = RufusVerbsClient.new
         number.times.map {
@@ -149,50 +157,22 @@ Benchmark.bmbm do |bm|
     end
   end
 
-require 'simplehttp'
-
-  if targets.include?(:curb)
-    require 'curb'
-    bm.report(' 7. curb') do
-      do_threads(threads) {
-        number.times.map {
-          Curl::Easy.http_get(url.to_s).body_str.bytesize
-        }
-      }
-    end
-  end
-
-  if targets.include?(:typhoeus)
-    require 'typhoeus'
-    bm.report(' 8. typhoeus') do
-      do_threads(threads) {
-        number.times.map {
-          Typhoeus::Request.get(url_str).body.bytesize
-        }
-      }
-    end
-  end
-
-  if targets.include?(:eventmachine)
-    require 'eventmachine'
-    require 'em/protocols/httpclient2'
-    bm.report(' 9. eventmachine/httpclient2') do
+  if targets.include?(:em_http_request)
+    require 'em-http'
+    bm.report(' 8. em-http-request') do
       EM.run do
         query = {}
         done = false
         do_threads(threads) {
-          host, port = url.host, url.port
-          path = url.path
-          requests = 0
           number.times.map {
-            client = EM::Protocols::HttpClient2.connect(host, port)
-            req = client.get(url.path)
+            req = EventMachine::HttpRequest.new(url).get
             query[req] = req
-            req.callback {
-              req.content.size
+            req.callback do
+              req.response.bytesize
               query.delete(req)
               EM.stop if done && query.empty?
-            }
+            end
+            req.errback { warn 'err' }
           }
         }
         done = true
@@ -202,20 +182,18 @@ require 'simplehttp'
 
   if targets.include?(:excon)
     require 'excon'
-    bm.report('10. excon') do
-      c = HTTPClient.new
+    bm.report(' 9. excon') do
       do_threads(threads) {
         number.times.map {
           Excon.get(url_str).body.bytesize
         }
       }
-      c.reset_all
     end
   end
 
   if targets.include?(:httpclient)
     require 'httpclient'
-    bm.report('11. httpclient') do
+    bm.report('10. httpclient') do
       c = HTTPClient.new
       do_threads(threads) {
         number.times.map {
@@ -225,36 +203,50 @@ require 'simplehttp'
     end
   end
 
-  if targets.include?(:faraday)
-    require 'faraday'
-    if jruby
-      # Hit 1 time before to avoid autoload concurrency problem.
-      Faraday.new(:url => (url + "/").to_s) { |builder|
-        builder.adapter :net_http
-      }.get(url.path)
-    end
-    bm.report('12. faraday(typhoeus)') do
+  if targets.include?(:curb)
+    require 'curb'
+    bm.report('11. curb(easy)') do
       do_threads(threads) {
-        conn = Faraday.new(:url => (url + "/").to_s) { |builder|
-          builder.adapter :typhoeus
-        }
         number.times.map {
-          conn.get(url.path).body.bytesize
+          Curl::Easy.http_get(url.to_s).body_str.bytesize
         }
       }
     end
   end
 
-
-  if targets.include?(:faraday_net_http)
-    require 'faraday'
-    if jruby
-      # Hit 1 time before to avoid autoload concurrency problem.
-      Faraday.new(:url => (url + "/").to_s) { |builder|
-        builder.adapter :net_http
-      }.get(url.path)
+  if targets.include?(:curb_multi)
+    require 'curb'
+    bm.report('12. curb(multi)') do
+      do_threads(threads) {
+        responses = []
+        m = Curl::Multi.new
+        number.times do |idx|
+          responses[idx] = ''
+          m.add(Curl::Easy.new(url_str) { |curl|
+            curl.on_body { |data| responses[idx] << data; data.bytesize }
+          })
+        end
+        m.perform
+        responses.map { |e| e.bytesize }
+      }
     end
-    bm.report('13. faraday(net/http)') do
+  end
+
+  if targets.include?(:patron)
+    require 'patron'
+    bm.report('13. patron') do
+      do_threads(threads) {
+        c = Patron::Session.new
+        number.times.map {
+          c.get(url).body.bytesize
+        }
+      }
+    end
+  end
+
+  if targets.include?(:faraday)
+    require 'faraday'
+    bm.report('14. faraday(net/http)') do
       do_threads(threads) {
         conn = Faraday.new(:url => (url + "/").to_s) { |builder|
           builder.adapter :net_http
@@ -266,14 +258,43 @@ require 'simplehttp'
     end
   end
 
+  if targets.include?(:httpi)
+    require 'httpi'
+    HTTPI.logger.level = Logger::UNKNOWN # disable
+    bm.report('15. httpi(httpclient)') do
+      do_threads(threads) {
+        number.times.map {
+          HTTPI.get(url_str).body.bytesize
+        }
+      }
+    end
+  end
+
+  if targets.include?(:weary)
+    require 'weary'
+    bm.report('16. weary') do
+      h = Class.new(Weary::Client)
+      domain = url.dup
+      domain.path = '/'
+      h.domain(domain.to_s)
+      h.get :get, '{path}'
+      c = h.new
+      do_threads(threads) {
+        number.times.map {
+          c.get(:path => url.path.sub(/^\//, '')).perform.body.bytesize
+        }
+      }
+    end
+  end
+
   if targets.include?(:wrest)
     require 'wrest'
     Wrest.use_native!
     Wrest.logger = null_logger
-    bm.report('14. wrest(net/http)') do
+    bm.report('17. wrest(net/http)') do
       do_threads(threads) {
         number.times.map {
-          url.to_s.to_uri.get.body.bytesize
+          url_str.to_uri.get.body.bytesize
         }
       }
     end
