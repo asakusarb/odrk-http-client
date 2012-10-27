@@ -11,6 +11,8 @@ $ssl_port = 17172
 $proxy_port = 17173
 
 class OdrkHTTPClientTestCase < Test::Unit::TestCase
+  DIR = File.dirname(__FILE__)
+
   def setup
     @server = HTTPServer.new($host, $port)
     @ssl_server = nil
@@ -40,6 +42,39 @@ class OdrkHTTPClientTestCase < Test::Unit::TestCase
     url.user = user
     url.password = password
     url.to_s
+  end
+
+  def issue_crl(revoke_info, issuer_cert, issuer_key)
+    now = Time.now
+    crl = OpenSSL::X509::CRL.new
+    crl.issuer = issuer_cert.subject
+    crl.version = 1
+    crl.last_update = now
+    crl.next_update = now + 1800
+    revoke_info.each do |serial, time, reason_code|
+      revoked = OpenSSL::X509::Revoked.new
+      revoked.serial = serial
+      revoked.time = time
+      enum = OpenSSL::ASN1::Enumerated(reason_code)
+      ext = OpenSSL::X509::Extension.new("CRLReason", enum)
+      revoked.add_extension(ext)
+      crl.add_revoked(revoked)
+    end
+    ef = OpenSSL::X509::ExtensionFactory.new
+    ef.issuer_certificate = issuer_cert
+    ef.crl = crl
+    crlnum = OpenSSL::ASN1::Integer(1)
+    crl.add_extension(OpenSSL::X509::Extension.new("crlNumber", crlnum))
+    crl.sign(issuer_key, OpenSSL::Digest::SHA1.new)
+    crl
+  end
+
+  def cert(filename)
+    OpenSSL::X509::Certificate.new(File.read(File.join(DIR, 'fixture', filename)))
+  end
+
+  def key(filename, password = nil)
+    OpenSSL::PKey::RSA.new(File.read(File.join(DIR, 'fixture', filename)), password)
   end
 end
 

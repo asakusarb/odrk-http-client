@@ -69,6 +69,28 @@ class TestHTTPClient < OdrkHTTPClientTestCase
     end
   end
 
+  def test_1071_ssl_revocation
+    setup_sslserver
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    crl1 = issue_crl([], cert('ca.pem'), key('ca.key', '1234'))
+    crl21 = issue_crl([], cert('subca.pem'), key('subca.key', '1234'))
+    crl22 = issue_crl([[cert('server.pem').serial, Time.now, 1]], cert('subca.pem'), key('subca.key', '1234'))
+    # Not revoked
+    @client.ssl_config.clear_cert_store
+    @client.ssl_config.add_trust_ca(ca_file)
+    @client.ssl_config.add_crl(crl1)
+    @client.ssl_config.add_crl(crl21)
+    assert_equal('hello ssl', @client.get(@ssl_url + 'hello').body)
+    # Revoked
+    @client.ssl_config.clear_cert_store
+    @client.ssl_config.add_trust_ca(ca_file)
+    @client.ssl_config.add_crl(crl1)
+    @client.ssl_config.add_crl(crl22)
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(@ssl_url + 'hello')
+    end
+  end
+
   def test_108_basic_auth
     @client.set_auth(@url, 'admin', 'admin')
     assert_equal('basic_auth OK', @client.get(@url + 'basic_auth').body)

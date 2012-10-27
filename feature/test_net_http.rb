@@ -90,6 +90,32 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     end
   end
 
+  def test_1071_ssl_revocation
+    setup_sslserver
+    @client = Net::HTTP.new('localhost', $ssl_port)
+    @client.use_ssl = true
+    ca_file = File.expand_path('./fixture/ca_all.pem', File.dirname(__FILE__))
+    crl1 = issue_crl([], cert('ca.pem'), key('ca.key', '1234'))
+    crl21 = issue_crl([], cert('subca.pem'), key('subca.key', '1234'))
+    crl22 = issue_crl([[cert('server.pem').serial, Time.now, 1]], cert('subca.pem'), key('subca.key', '1234'))
+    # Not revoked
+    @client.cert_store = cert_store = OpenSSL::X509::Store.new
+    cert_store.flags = OpenSSL::X509::V_FLAG_CRL_CHECK | OpenSSL::X509::V_FLAG_CRL_CHECK_ALL
+    cert_store.add_file(ca_file)
+    cert_store.add_crl(crl1)
+    cert_store.add_crl(crl21)
+    assert_equal('hello ssl', @client.get(@ssl_url + 'hello').body)
+    # Revoked
+    @client.cert_store = cert_store = OpenSSL::X509::Store.new
+    cert_store.flags = OpenSSL::X509::V_FLAG_CRL_CHECK | OpenSSL::X509::V_FLAG_CRL_CHECK_ALL
+    cert_store.add_file(ca_file)
+    cert_store.add_crl(crl1)
+    cert_store.add_crl(crl22)
+    assert_raise(OpenSSL::SSL::SSLError) do
+      @client.get(@ssl_url + 'hello')
+    end
+  end
+
   def test_108_basic_auth
     req = Net::HTTP::Get.new(@url + 'basic_auth')
     req.basic_auth('admin', 'admin')
