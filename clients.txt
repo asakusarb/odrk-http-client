@@ -9,7 +9,7 @@ rufus-verbs,            yes, https://github.com/jmettraux/rufus-verbs
 curb,                   yes, https://github.com/taf2/curb/
 patron,                 yes, https://github.com/toland/patron        
 typhoeus,               yes, https://github.com/dbalatero/typhoeus   
-em-http,		yes, https://github.com/igrigorik/em-http-request
+em-http-request,	yes, https://github.com/igrigorik/em-http-request
 excon,                  yes, https://github.com/geemus/excon 
 httpclient,             yes, https://github.com/nahi/httpclient
 faraday,                yes, https://github.com/technoweenie/faraday 
