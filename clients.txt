@@ -2,12 +2,14 @@ module name,            gem
 net/http,               no, http://svn.ruby-lang.org/cgi-bin/viewvc.cgi/trunk/lib/net/http.rb
 open-uri,               no, http://svn.ruby-lang.org/cgi-bin/viewvc.cgi/trunk/lib/open-uri.rb
 httparty,               yes, https://github.com/jnunemaker/httparty  
+mechanize,              yes, https://github.com/sparklemotion/mechanize
 rest-client,            yes, https://github.com/archiloque/rest-client       
 right_http_connection,  yes, https://github.com/rightscale/right_http_connection
 rufus-verbs,            yes, https://github.com/jmettraux/rufus-verbs        
 curb,                   yes, https://github.com/taf2/curb/
 patron,                 yes, https://github.com/toland/patron        
 typhoeus,               yes, https://github.com/dbalatero/typhoeus   
+em-http,		yes, https://github.com/igrigorik/em-http-request
 excon,                  yes, https://github.com/geemus/excon 
 httpclient,             yes, https://github.com/nahi/httpclient
 faraday,                yes, https://github.com/technoweenie/faraday 
