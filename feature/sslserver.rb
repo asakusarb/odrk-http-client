@@ -35,7 +35,7 @@ class SSLServer < WEBrick::HTTPServer
 
   def shutdown
     super
-    @server_thread.join if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+    @server_thread.join if RUBY_ENGINE == 'rbx'
   end
 
 private

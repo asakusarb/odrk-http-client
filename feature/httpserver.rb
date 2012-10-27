@@ -55,7 +55,7 @@ class HTTPServer < WEBrick::HTTPServer
 
   def shutdown
     super
-    @server_thread.join if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+    @server_thread.kill if RUBY_ENGINE == 'rbx'
   end
 
 private
@@ -194,7 +194,6 @@ private
     end
 
     def do_PUT(req, res)
-      p req
       if req.respond_to?(:continue)
         req.continue
       end
@@ -306,6 +305,34 @@ private
         end
         sock.close
       }
+    end
+  end
+
+  class IRIServer
+    def initialize(host)
+      @server = TCPServer.open(host, 0)
+      @server_thread = Thread.new {
+        sock = @server.accept
+        req = sock.gets
+        while line = sock.gets
+          break if line.chomp.empty?
+        end
+        sock.write("HTTP/1.1 200 OK\r\n")
+        sock.write("Content-Length: 5\r\n")
+        sock.write("\r\n")
+        sock.write("hello")
+        sock.close
+      }
+      @url = "http://#{host}:#{@server.addr[1]}/"
+    end
+
+    def url
+      @url
+    end
+
+    def close
+      @server.close
+      @server_thread.raise
     end
   end
 end

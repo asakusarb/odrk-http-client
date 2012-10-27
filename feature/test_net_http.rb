@@ -198,4 +198,11 @@ class TestNetHTTP < OdrkHTTPClientTestCase
     assert_equal(Encoding::EUC_JP, body.encoding)
     assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
   end
+
+  def test_216_iri
+    server = HTTPServer::IRIServer.new($host)
+    require 'addressable/uri'
+    assert_equal('hello', Net::HTTP.get(Addressable::URI.parse(server.url + 'hello?q=grebe-camilla-träff-åsa-norlen-paul')))
+    server.close
+  end
 end

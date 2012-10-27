@@ -23,6 +23,7 @@ class ProxyServer < WEBrick::HTTPProxyServer
 
   def shutdown
     super
+    @server_thread.kill if RUBY_ENGINE == 'rbx'
   end
 
 private

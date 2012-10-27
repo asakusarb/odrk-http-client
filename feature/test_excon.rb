@@ -169,4 +169,11 @@ class TestExcon < OdrkHTTPClientTestCase
     assert_equal(Encoding::EUC_JP, body.encoding)
     assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
   end
+
+  def test_216_iri
+    require 'addressable/uri'
+    server = HTTPServer::IRIServer.new($host)
+    assert_equal('hello', @client.get(Addressable::URI.parse(server.url + 'hello?q=grebe-camilla-träff-åsa-norlen-paul')).body)
+    server.close
+  end
 end

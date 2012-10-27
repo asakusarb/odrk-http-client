@@ -231,4 +231,11 @@ class TestCurb < OdrkHTTPClientTestCase
     assert_equal(Encoding::EUC_JP, body.encoding)
     assert_equal('あいうえお'.encode(Encoding::EUC_JP), body)
   end
+
+  def test_216_iri
+    server = HTTPServer::IRIServer.new($host)
+    body = Curl::Easy.http_get(server.url + 'hello?q=grebe-camilla-träff-åsa-norlen-paul').body_str
+    assert_equal('hello', body)
+    server.close
+  end
 end
