@@ -16,7 +16,7 @@ class SSLServer < WEBrick::HTTPServer
       :DocumentRoot => DIR,
       :SSLEnable => true,
       :SSLCACertificateFile => File.join(DIR, 'fixture', 'ca.pem'),
-      :SSLCertificate => cert('server.cert'),
+      :SSLCertificate => cert('server.pem'),
       :SSLPrivateKey => key('server.key'),
       :SSLVerifyClient => nil, #OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT|OpenSSL::SSL::VERIFY_PEER,
       :SSLClientCA => nil,
