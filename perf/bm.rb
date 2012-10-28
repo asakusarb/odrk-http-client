@@ -2,11 +2,11 @@ require 'uri'
 require 'benchmark'
 
 url = ARGV.shift or raise "URL must be given"
-block = ARGV.shift
+threads = ARGV.shift.to_i
+number = ARGV.shift.to_i
+block = ARGV
 url = URI.parse(url)
 url_str = url.to_s
-threads = 10
-number = 5
 
 jruby = defined?(JRUBY_VERSION)
 
@@ -30,8 +30,8 @@ targets = [
   :wrest
 ].compact
 
-if block
-  targets = [targets[block.to_i - 1]]
+unless block.empty?
+  targets = block.map { |e| targets[e.to_i - 1] }
 end
 
 # Compare httpclient 50 threads vs EM 50 concurrency.
@@ -106,6 +106,7 @@ Benchmark.bmbm do |bm|
     bm.report(' 4. mechanize') do
       do_threads(threads) {
         c = Mechanize.new
+        c.conditional_requests = false # disable page cache for benchmark
         number.times.map {
           c.get(url).content.bytesize
         }
@@ -237,6 +238,7 @@ Benchmark.bmbm do |bm|
     bm.report('13. patron') do
       do_threads(threads) {
         c = Patron::Session.new
+        c.timeout = 20
         number.times.map {
           c.get(url).body.bytesize
         }
