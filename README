@@ -5,7 +5,7 @@ Summary presentation is at http://j.mp/OdrkHTTPClient
 
 = Install all clients as a gem
 
-ruby scripts/install_gem.rb
+ruby script/install_gems.rb
 
 CAUTION: It installs gems to your user-install dir.
 
