@@ -30,11 +30,11 @@ class OdrkHTTPClientTestCase < Test::Unit::TestCase
   end
 
   def setup_sslserver
-    @ssl_server = SSLServer.new('localhost', $ssl_port)
+    @ssl_server = SSLServer.new($host, $ssl_port)
   end
 
   def setup_proxyserver(auth = false)
-    @proxy_server = ProxyServer.new('localhost', $proxy_port, auth)
+    @proxy_server = ProxyServer.new($host, $proxy_port, auth)
   end
 
   def url_with_auth(url, user, password)
